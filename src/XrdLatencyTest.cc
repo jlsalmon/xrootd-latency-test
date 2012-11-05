@@ -17,6 +17,10 @@
 //------------------------------------------------------------------------------
 
 #include "XrdLatencyTest.hh"
+#include "StatResponseHandler.hh"
+#include "XrdCl/XrdClFileSystem.hh"
+#include "XrdCl/XrdClURL.hh"
+#include "XrdSys/XrdSysPthread.hh"
 
 XrdLatencyTest::XrdLatencyTest() {
 }
@@ -24,30 +28,16 @@ XrdLatencyTest::XrdLatencyTest() {
 XrdLatencyTest::~XrdLatencyTest() {
 }
 
-/**
- * 
- * @param host
- * @param port
- * @return 
- */
 int XrdLatencyTest::addHost(std::string host, int port) {
     std::stringstream ss;
     ss << port;
     addHost(host += ":" + ss.str());
 }
 
-/**
- * 
- * @param host "<node>[:port]"
- * @return 
- */
 int XrdLatencyTest::addHost(std::string host) {
     hosts.push_back(host);
 }
 
-/**
- * 
- */
 void XrdLatencyTest::printHosts() {
     std::vector<std::string>::const_iterator i;
 
@@ -55,98 +45,55 @@ void XrdLatencyTest::printHosts() {
         std::cout << *i << std::endl;
 }
 
-/**
- * 
- * @param host
- * @param port
- * @return 
- */
 int XrdLatencyTest::removeHost(std::string host, int port) {
     std::stringstream ss;
     ss << port;
     removeHost(host += ":" + ss.str());
 }
 
-/**
- * 
- * @param host
- * @return 
- */
 int XrdLatencyTest::removeHost(std::string host) {
     hosts.erase(std::remove(hosts.begin(), hosts.end(), host), hosts.end());
 }
 
-/**
- * 
- * @param path
- * @return 
- */
 int XrdLatencyTest::setStatPath(std::string path) {
     statpath = path;
 }
 
-/**
- * 
- * @param seconds
- * @return 
- */
 int XrdLatencyTest::setStatInterval(size_t seconds) {
     statinterval = seconds;
 }
 
-/**
- * 
- * @param seconds
- * @return 
- */
 int XrdLatencyTest::setFloodInterval(size_t seconds) {
     floodinterval = seconds;
 }
 
-/**
- * Print the latest results to out and errors to err
- * 
- * @param out
- * @param err
- */
 void XrdLatencyTest::PrintOut(std::string& out, std::string& err) {
 
 }
 
-/**
- * Start the thread doing the measurements optionally with stat or flood option 
- * 
- * @param do_stat
- * @param do_flood
- * @return 
- */
 bool XrdLatencyTest::Start(bool do_stat, bool do_flood) {
 
+    using namespace XrdCl;
+
+    std::string urlstr = "root://localhost:1094/";
+
+    URL url(urlstr);
+    FileSystem fs(url);
+    ResponseHandler *srh = new StatResponseHandler();
+
+    for (int i = 0; i < 10; i++) {
+        fs.Stat(statpath, srh, 10);
+    }
 }
 
-/**
- * Stop the thread doing the measurements
- *
- * @return 
- */
 bool XrdLatencyTest::Stop() {
 
 }
 
-/**
- * 
- * @param measurement
- * @return true if measured, false if nothing measured
- */
 bool XrdLatencyTest::GetLatencies(std::map<std::string, double>& measurement) {
 
 }
 
-/**
- * 
- * @param measurements
- * @return true if measured, false if nothing measured
- */
 bool XrdLatencyTest::GetFloodRate(std::map<std::string, double>& measurements) {
 
 }
@@ -157,7 +104,7 @@ void usage() {
 
 int main(int argc, const char* argv[]) {
 
-    bool verbose = 0;
+    bool verbose = false;
     int c;
 
     while ((c = getopt(argc, (char**) argv, "ovh?")) != -1) {
@@ -167,7 +114,7 @@ int main(int argc, const char* argv[]) {
                 break;
             case 'v':
                 std::cout << "Verbose" << std::endl;
-                verbose = 1;
+                verbose = true;
                 break;
             case 'h':
             case '?':
@@ -195,14 +142,16 @@ int main(int argc, const char* argv[]) {
     xrdlt->printHosts();
     std::cout << "------------------------" << std::endl;
 
-    xrdlt->setStatPath("/data");
-    std::cout << "Stat path: " << xrdlt->statpath;
+    xrdlt->setStatPath("/tmp");
+    std::cout << "Stat path: " << xrdlt->statpath << std::endl;
 
     xrdlt->setStatInterval(5);
-    std::cout << "Stat interval: " << xrdlt->statinterval;
+    std::cout << "Stat interval: " << xrdlt->statinterval << std::endl;
 
     xrdlt->setFloodInterval(5);
-    std::cout << "Flood interval: " << xrdlt->floodinterval;
+    std::cout << "Flood interval: " << xrdlt->floodinterval << std::endl;
+
+    xrdlt->Start(true, false);
 
     return 0;
 }
