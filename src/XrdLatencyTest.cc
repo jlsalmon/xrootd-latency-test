@@ -23,6 +23,24 @@
 #include "XrdSys/XrdSysPthread.hh"
 
 XrdLatencyTest::XrdLatencyTest() {
+    statpath = "/tmp";
+    flood = false;
+    loop = false;
+    statinterval = 1;
+    floodinterval = 10;
+}
+
+XrdLatencyTest::XrdLatencyTest(std::string statpath,
+        bool flood,
+        bool loop,
+        size_t statinterval,
+        size_t floodinterval) {
+
+    setStatPath(statpath);
+    setFlood(flood);
+    setLoop(loop);
+    setStatInterval(statinterval);
+    setFloodInterval(floodinterval);
 }
 
 XrdLatencyTest::~XrdLatencyTest() {
@@ -55,15 +73,23 @@ int XrdLatencyTest::removeHost(std::string host) {
     hosts.erase(std::remove(hosts.begin(), hosts.end(), host), hosts.end());
 }
 
-int XrdLatencyTest::setStatPath(std::string path) {
+void XrdLatencyTest::setFlood(bool flood) {
+    this->flood = flood;
+}
+
+void XrdLatencyTest::setLoop(bool loop) {
+    this->loop = loop;
+}
+
+void XrdLatencyTest::setStatPath(std::string path) {
     statpath = path;
 }
 
-int XrdLatencyTest::setStatInterval(size_t seconds) {
+void XrdLatencyTest::setStatInterval(int seconds) {
     statinterval = seconds;
 }
 
-int XrdLatencyTest::setFloodInterval(size_t seconds) {
+void XrdLatencyTest::setFloodInterval(int seconds) {
     floodinterval = seconds;
 }
 
@@ -71,26 +97,31 @@ void XrdLatencyTest::PrintOut(std::string& out, std::string& err) {
 
 }
 
-bool XrdLatencyTest::Start(bool do_stat, bool do_flood) {
+bool XrdLatencyTest::Start() {
 
     using namespace XrdCl;
 
     std::string proto = "root://";
-    int n;
+    int n = 1;
+    
+    if (flood) n = 1000;
 
-    if (do_stat) n = 1;
-    else if (do_flood) n = 0;
+    do {
+        for (int i = 0; i < hosts.size(); i++) {
+            
+            URL url(proto + hosts[i]);
+            FileSystem fs(url);
+            ResponseHandler *srh = new StatResponseHandler();
+            XRootDStatus xrds;
 
-    for (int i = 0; i < hosts.size(); i++) {
-        URL url(proto + hosts[i]);
-        FileSystem fs(url);
-        ResponseHandler *srh = new StatResponseHandler();
-        XRootDStatus xrds;
-
-        for (int i = 0; i < n; i++) {
-            xrds = fs.Stat(statpath, srh, 10);
+            for (int i = 0; i < n; i++) {
+                xrds = fs.Stat(statpath, srh, 10);
+            }
         }
-    }
+        
+        sleep(statinterval);
+
+    } while (loop);
 }
 
 bool XrdLatencyTest::Stop() {
@@ -105,72 +136,7 @@ bool XrdLatencyTest::GetFloodRate(std::map<std::string, double>& measurements) {
 
 }
 
-void usage() {
-    std::cout << "Usage: xrd-latency-test <options>" << std::endl;
+void XrdLatencyTest::setVerbose(bool verbose) {
+    this->verbose = verbose;
 }
 
-int main(int argc, const char* argv[]) {
-
-    std::string path = "/";
-    size_t statinterval = 1;
-    size_t floodinterval = 10;
-    bool flood = false;
-    bool loop = false;
-    bool verbose = false;
-
-    int c;
-
-    while ((c = getopt(argc, (char**) argv, "p:s:f:lvhF?")) != -1) {
-        switch (c) {
-            case 'p':
-                path = optarg;
-                break;
-            case 's':
-                statinterval = atoi(optarg);
-                break;
-            case 'f':
-                floodinterval = atoi(optarg);
-                break;
-            case 'F':
-                flood = true;
-                break;
-            case 'l':
-                loop = true;
-                break;
-            case 'v':
-                verbose = true;
-                break;
-            case 'h':
-            case '?':
-                usage();
-                return EXIT_SUCCESS;
-            default:
-                std::cout << "Unknown option: " << (char) c << std::endl;
-                usage();
-                return EXIT_FAILURE;
-        }
-    }
-
-    XrdLatencyTest *xrdlt = new XrdLatencyTest();
-
-    xrdlt->addHost("vagabond", 1094);
-    xrdlt->addHost("vagabond", 1094);
-    xrdlt->addHost("vagabond:1094");
-
-    xrdlt->printHosts();
-    std::cout << "------------------------" << std::endl;
-
-    xrdlt->setStatPath(path);
-    std::cout << "Stat path: " << xrdlt->statpath << std::endl;
-
-    xrdlt->setStatInterval(statinterval);
-    std::cout << "Stat interval: " << xrdlt->statinterval << std::endl;
-
-    xrdlt->setFloodInterval(floodinterval);
-    std::cout << "Flood interval: " << xrdlt->floodinterval << std::endl;
-
-    xrdlt->Start(!flood, flood);
-
-    std::cin.get();
-    return 0;
-}

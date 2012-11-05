@@ -31,17 +31,43 @@
 
 class XrdLatencyTest {
 public:
-    XrdLatencyTest();
-    virtual ~XrdLatencyTest();
-
+    
     std::vector<std::string> hosts;
     std::string statpath;
-
+    bool flood;
+    bool loop;
     int statinterval;
     int floodinterval;
+    bool verbose;
 
     /**
-     * Add a host to the vector of hosts to be tested.
+     * Default constructor
+     */
+    XrdLatencyTest();
+
+    /**
+     * Optional constructor
+     * 
+     * @param statpath: the path on the remote box to stat
+     * @param flood: perform flood or not
+     * @param loop: loop mode or not
+     * @param statinterval: time between stats (if looping)
+     * @param floodinterval: time between floods (if looping)
+     */
+    XrdLatencyTest(std::string statpath, 
+                   bool flood, 
+                   bool loop, 
+                   size_t statinterval, 
+                   size_t floodinterval);
+
+    /**
+     * Destructor
+     */
+    virtual ~XrdLatencyTest();
+
+
+    /**
+     * Add a host to this test.
      * 
      * @param host: the hostname of the host to be added
      * @param port: the xrootd port of the host
@@ -50,7 +76,7 @@ public:
     int addHost(std::string host, int port);
 
     /**
-     * Add a host to the vector of hosts to be tested.
+     * Add a host to ths test.
      * 
      * @param host: the hostname/port of the host to be added in the
      *              form: "<hostname>[:port]"
@@ -85,25 +111,34 @@ public:
      * Set the path to stat on the remote box. Defaults to "/".
      * 
      * @param path: the local path on the remote box.
-     * @return 
      */
-    int setStatPath(std::string path = "/");
+    void setStatPath(std::string path);
+
+    /**
+     * 
+     * @param flood
+     */
+    void setFlood(bool flood);
+
+    /**
+     * 
+     * @param loop
+     */
+    void setLoop(bool loop);
 
     /**
      * Set the interval between single stat requests during operation.
      * 
      * @param seconds: the number of seconds between stats
-     * @return 
      */
-    int setStatInterval(size_t seconds);
+    void setStatInterval(int seconds);
 
     /**
      * Set the interval between stat floods during operation.
      * 
      * @param seconds: the number of seconds between floods
-     * @return 
      */
-    int setFloodInterval(size_t seconds);
+    void setFloodInterval(int seconds);
 
     /**
      * Print the latest results to out and errors to err.
@@ -114,14 +149,11 @@ public:
     void PrintOut(std::string &out, std::string &err);
 
     /**
-     * Start the thread doing the measurements - optionally with stat or flood 
-     * options 
+     * Start the thread doing the measurements
      * 
-     * @param do_stat: whether or not to use stat mode.
-     * @param do_flood: whether or not to use flood mode.
      * @return 
      */
-    bool Start(bool do_stat, bool do_flood);
+    bool Start();
 
     /**
      * Stop the thread doing the measurements.
@@ -144,6 +176,11 @@ public:
      */
     bool GetFloodRate(std::map<std::string, double> &measurements);
 
+    /**
+     * 
+     * @param verbose
+     */
+    void setVerbose(bool verbose);
 };
 
 #endif	/* XRDLATENCYTEST_H */
