@@ -75,14 +75,21 @@ bool XrdLatencyTest::Start(bool do_stat, bool do_flood) {
 
     using namespace XrdCl;
 
-    std::string urlstr = "root://localhost:1094/";
+    std::string proto = "root://";
+    int n;
 
-    URL url(urlstr);
-    FileSystem fs(url);
-    ResponseHandler *srh = new StatResponseHandler();
+    if (do_stat) n = 1;
+    else if (do_flood) n = 0;
 
-    for (int i = 0; i < 10; i++) {
-        fs.Stat(statpath, srh, 10);
+    for (int i = 0; i < hosts.size(); i++) {
+        URL url(proto + hosts[i]);
+        FileSystem fs(url);
+        ResponseHandler *srh = new StatResponseHandler();
+        XRootDStatus xrds;
+
+        for (int i = 0; i < n; i++) {
+            xrds = fs.Stat(statpath, srh, 10);
+        }
     }
 }
 
@@ -104,54 +111,66 @@ void usage() {
 
 int main(int argc, const char* argv[]) {
 
+    std::string path = "/";
+    size_t statinterval = 1;
+    size_t floodinterval = 10;
+    bool flood = false;
+    bool loop = false;
     bool verbose = false;
+
     int c;
 
-    while ((c = getopt(argc, (char**) argv, "ovh?")) != -1) {
+    while ((c = getopt(argc, (char**) argv, "p:s:f:lvhF?")) != -1) {
         switch (c) {
-            case 'o':
-                std::cout << "One-shot mode" << std::endl;
+            case 'p':
+                path = optarg;
+                break;
+            case 's':
+                statinterval = atoi(optarg);
+                break;
+            case 'f':
+                floodinterval = atoi(optarg);
+                break;
+            case 'F':
+                flood = true;
+                break;
+            case 'l':
+                loop = true;
                 break;
             case 'v':
-                std::cout << "Verbose" << std::endl;
                 verbose = true;
                 break;
             case 'h':
             case '?':
                 usage();
-                break;
+                return EXIT_SUCCESS;
             default:
                 std::cout << "Unknown option: " << (char) c << std::endl;
-                usage;
-                break;
+                usage();
+                return EXIT_FAILURE;
         }
     }
 
     XrdLatencyTest *xrdlt = new XrdLatencyTest();
 
-    xrdlt->addHost("manager.xrd.test", 1094);
-    xrdlt->addHost("ds1.xrd.test", 1094);
-    xrdlt->addHost("ds2.xrd.test:1094");
+    xrdlt->addHost("vagabond", 1094);
+    xrdlt->addHost("vagabond", 1094);
+    xrdlt->addHost("vagabond:1094");
 
     xrdlt->printHosts();
     std::cout << "------------------------" << std::endl;
 
-    xrdlt->removeHost("ds1.xrd.test:1094");
-    xrdlt->removeHost("ds2.xrd.test", 1094);
-
-    xrdlt->printHosts();
-    std::cout << "------------------------" << std::endl;
-
-    xrdlt->setStatPath("/tmp");
+    xrdlt->setStatPath(path);
     std::cout << "Stat path: " << xrdlt->statpath << std::endl;
 
-    xrdlt->setStatInterval(5);
+    xrdlt->setStatInterval(statinterval);
     std::cout << "Stat interval: " << xrdlt->statinterval << std::endl;
 
-    xrdlt->setFloodInterval(5);
+    xrdlt->setFloodInterval(floodinterval);
     std::cout << "Flood interval: " << xrdlt->floodinterval << std::endl;
 
-    xrdlt->Start(true, false);
+    xrdlt->Start(!flood, flood);
 
+    std::cin.get();
     return 0;
 }

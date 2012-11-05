@@ -17,6 +17,7 @@
 //------------------------------------------------------------------------------
 
 #include "StatResponseHandler.hh"
+#include "XrdLatencyTest.hh"
 
 StatResponseHandler::StatResponseHandler() : XrdCl::ResponseHandler() {
 }
@@ -26,10 +27,17 @@ StatResponseHandler::~StatResponseHandler() {
 
 void StatResponseHandler::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
-    
-    XrdCl::StatInfo *si = NULL;
-    response->Get(si);
-    
-    std::cout << status->ToString() << si->GetModTimeAsString() << std::endl;
+
+    if (response != NULL) {
+        XrdCl::StatInfo *si = NULL;
+        response->Get(si);
+        std::cout << status->ToString() << si->GetModTimeAsString() << std::endl;
+    }
+
+    if (status != NULL) {
+        if (status->IsError()) {
+            std::cout << "Error: " << status->GetErrorMessage() << std::endl;
+        }
+    }
 }
 
