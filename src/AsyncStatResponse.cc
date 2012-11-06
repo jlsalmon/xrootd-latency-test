@@ -16,48 +16,31 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef STATRESPONSEHANDLER_HH
-#define	STATRESPONSEHANDLER_HH
+#include "XrdCl/XrdClFileSystem.hh"
+#include "AsyncStatResponse.hh"
 
-#include "XrdSys/XrdSysPthread.hh"
-#include "XrdCl/XrdClXRootDResponses.hh"
-#include <string>
-#include <cstdlib>
-#include <iostream>
+#include <sys/time.h>
+#include <iomanip>
 
-class StatResponseHandler : public XrdCl::ResponseHandler {
-public:
-    StatResponseHandler();
-    ~StatResponseHandler();
+AsyncStatResponse::AsyncStatResponse() {
+}
 
-    /**
-     * Handle response
-     * 
-     * @param status: status of the response
-     * @param response: object containing extra info about the response
-     */
-    virtual void HandleResponse(XrdCl::XRootDStatus* status,
-            XrdCl::AnyObject* response);
+AsyncStatResponse::~AsyncStatResponse() {
+}
+
+void AsyncStatResponse::DoStat(XrdCl::FileSystem fs, std::string statpath) {
+    fs.Stat(statpath, this, 10);
+}
+
+void AsyncStatResponse::HandleResponse(XrdCl::XRootDStatus* status,
+        XrdCl::AnyObject* response) {
+
+    gettimeofday(&this->resptime, NULL);
+    this->status = status;
     
-    /**
-     * 
-     * @param tv
-     * @return 
-     */
-    double mstime(struct timeval tv);
-    
-    /**
-     * 
-     * @param req
-     * @param resp
-     * @return 
-     */
-    double timediff(struct timeval req, struct timeval resp);
-
-private:
-    struct timeval reqtime;
-    struct timeval resptime;
-};
-
-#endif	/* STATRESPONSEHANDLER_HH */
-
+    if (response != NULL) {
+        XrdCl::StatInfo *si = NULL;
+        response->Get(si);
+        this->si = si;
+    }
+}

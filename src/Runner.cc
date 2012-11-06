@@ -66,19 +66,8 @@ int main(int argc, const char* argv[]) {
     }
 
     xrdlt->addHost("eosdev", 1094);
-
-    xrdlt->printHosts();
-    std::cout << "------------------------" << std::endl;
-
-    std::cout << "Stat path: " << xrdlt->statpath << std::endl;
-    std::cout << "Loop: " << xrdlt->loop << std::endl;
-    std::cout << "Flood: " << xrdlt->flood << std::endl;
-    std::cout << "Stat interval: " << xrdlt->statinterval << std::endl;
-    std::cout << "Flood interval: " << xrdlt->floodinterval << std::endl;
-
     xrdlt->Start();
 
-    std::cin.get();
-    return 0;
+    return EXIT_SUCCESS;
 }
 

@@ -20,6 +20,7 @@
 #define	XRDLATENCYTEST_H
 
 #include "XrdCl/XrdClFileSystem.hh"
+#include "StatResponse.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -34,7 +35,8 @@
 class XrdLatencyTest {
 public:
     
-    std::map<std::string, double> hosts;
+    std::map<std::string, StatResponse*> hosts;
+    std::string currenthost;
     std::string statpath;
     std::string proto;
     bool async;
@@ -170,14 +172,7 @@ public:
      * @param fs
      * @return 
      */
-    bool AsyncStat(XrdCl::FileSystem &fs);
-    
-    /**
-     * 
-     * @param fs
-     * @return 
-     */
-    bool SyncStat(XrdCl::FileSystem &fs);
+    void Stat(XrdCl::FileSystem &fs);
 
     /**
      * Stop the thread doing the measurements.
