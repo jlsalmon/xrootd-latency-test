@@ -37,7 +37,9 @@ void StatResponseHandler::HandleResponse(XrdCl::XRootDStatus* status,
     if (status != NULL) {
 
         std::cout << "-------------------------------------" << std::endl;
+        std::cout << "req: " << mstime(this->reqtime) << " resp: " << mstime(this->resptime) << std::endl;
         std::cout << "Latency: " << std::setprecision(3) << std::fixed << diff << " ms" << std::endl;
+        
         //        std::cout << "ToStr: " << status->ToString() << std::endl;
         //        std::cout << "Code: " << status->code << std::endl;
         //        std::cout << "ErrNo: " << status->errNo << std::endl;

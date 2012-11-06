@@ -19,6 +19,8 @@
 #ifndef XRDLATENCYTEST_H
 #define	XRDLATENCYTEST_H
 
+#include "XrdCl/XrdClFileSystem.hh"
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -32,8 +34,10 @@
 class XrdLatencyTest {
 public:
     
-    std::vector<std::string> hosts;
+    std::map<std::string, double> hosts;
     std::string statpath;
+    std::string proto;
+    bool async;
     bool flood;
     bool loop;
     int statinterval;
@@ -139,6 +143,12 @@ public:
      * @param seconds: the number of seconds between floods
      */
     void setFloodInterval(int seconds);
+    
+    /**
+     * 
+     * @param async
+     */
+    void setAsync(bool async);
 
     /**
      * Print the latest results to out and errors to err.
@@ -154,6 +164,20 @@ public:
      * @return 
      */
     bool Start();
+    
+    /**
+     * 
+     * @param fs
+     * @return 
+     */
+    bool AsyncStat(XrdCl::FileSystem &fs);
+    
+    /**
+     * 
+     * @param fs
+     * @return 
+     */
+    bool SyncStat(XrdCl::FileSystem &fs);
 
     /**
      * Stop the thread doing the measurements.

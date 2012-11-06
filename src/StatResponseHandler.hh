@@ -47,6 +47,10 @@ public:
     double mstime(struct timeval tv);
     
     /**
+     * 
+     * @param req
+     * @param resp
+     * @return 
      */
     double timediff(struct timeval req, struct timeval resp);
 

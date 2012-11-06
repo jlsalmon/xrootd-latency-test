@@ -31,7 +31,7 @@ int main(int argc, const char* argv[]) {
 
     int c;
 
-    while ((c = getopt(argc, (char**) argv, "p:s:f:lvhF?")) != -1) {
+    while ((c = getopt(argc, (char**) argv, "p:s:f:lvSFh?")) != -1) {
         switch (c) {
             case 'p':
                 xrdlt->setStatPath(optarg);
@@ -48,6 +48,9 @@ int main(int argc, const char* argv[]) {
             case 'l':
                 xrdlt->setLoop(true);
                 break;
+            case 'S':
+                xrdlt->setAsync(false);
+                break;
             case 'v':
                 xrdlt->setVerbose(true);
                 break;
@@ -62,9 +65,7 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    xrdlt->addHost("localhost", 1094);
-    xrdlt->addHost("localhost", 1094);
-    xrdlt->addHost("localhost:1094");
+    xrdlt->addHost("eosdev", 1094);
 
     xrdlt->printHosts();
     std::cout << "------------------------" << std::endl;
