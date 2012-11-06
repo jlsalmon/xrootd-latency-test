@@ -21,6 +21,7 @@
 #include "XrdCl/XrdClFileSystem.hh"
 #include "XrdCl/XrdClURL.hh"
 #include "XrdSys/XrdSysPthread.hh"
+#include <ctime>
 
 XrdLatencyTest::XrdLatencyTest() {
     statpath = "/tmp";
@@ -103,7 +104,6 @@ bool XrdLatencyTest::Start() {
 
     std::string proto = "root://";
     int n = 1;
-    
     if (flood) n = 1000;
 
     do {
@@ -111,11 +111,10 @@ bool XrdLatencyTest::Start() {
             
             URL url(proto + hosts[i]);
             FileSystem fs(url);
-            ResponseHandler *srh = new StatResponseHandler();
-            XRootDStatus xrds;
 
             for (int i = 0; i < n; i++) {
-                xrds = fs.Stat(statpath, srh, 10);
+                ResponseHandler *rh = new StatResponseHandler();
+                fs.Stat(statpath, rh, 10);
             }
         }
         

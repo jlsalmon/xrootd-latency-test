@@ -76,7 +76,7 @@ public:
     int addHost(std::string host, int port);
 
     /**
-     * Add a host to ths test.
+     * Add a host to this test.
      * 
      * @param host: the hostname/port of the host to be added in the
      *              form: "<hostname>[:port]"

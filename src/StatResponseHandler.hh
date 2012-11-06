@@ -38,7 +38,21 @@ public:
      */
     virtual void HandleResponse(XrdCl::XRootDStatus* status,
             XrdCl::AnyObject* response);
+    
+    /**
+     * 
+     * @param tv
+     * @return 
+     */
+    double mstime(struct timeval tv);
+    
+    /**
+     */
+    double timediff(struct timeval req, struct timeval resp);
 
+private:
+    struct timeval reqtime;
+    struct timeval resptime;
 };
 
 #endif	/* STATRESPONSEHANDLER_HH */
