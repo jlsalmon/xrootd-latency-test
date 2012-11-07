@@ -16,7 +16,11 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <sys/time.h>
+#include <iostream>
+
 #include "SyncStatResponse.hh"
+#include "XrdCl/XrdClFileSystem.hh"
 
 SyncStatResponse::SyncStatResponse() {
 }
@@ -24,11 +28,14 @@ SyncStatResponse::SyncStatResponse() {
 SyncStatResponse::~SyncStatResponse() {
 }
 
-void SyncStatResponse::init() {
-    
-}
+void SyncStatResponse::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
+    StatResponse::init();
+    XrdCl::XRootDStatus status;
 
-void SyncStatResponse::DoStat(XrdCl::FileSystem fs, std::string statpath) {
-    
+    status = fs.Stat(statpath, this->si, 10);
+
+    gettimeofday(&this->resptime, NULL);
+    this->status = status;
+    this->done = true;
 }
 

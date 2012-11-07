@@ -19,10 +19,12 @@
 #include "StatResponse.hh"
 #include <sys/time.h>
 #include <iomanip>
-
+#include <iostream>
 
 StatResponse::StatResponse() {
     gettimeofday(&this->reqtime, NULL);
+    this->si = 0;
+    this->status = 0;
 }
 
 StatResponse::~StatResponse() {
@@ -30,6 +32,29 @@ StatResponse::~StatResponse() {
 
 void StatResponse::init() {
     gettimeofday(&this->reqtime, NULL);
+}
+
+XrdCl::StatInfo* StatResponse::GetStatInfo() {
+    return this->si;
+}
+
+XrdCl::XRootDStatus StatResponse::GetXrootdStatus() {
+    return this->status;
+}
+
+bool StatResponse::IsDone() {
+    return this->done;
+}
+
+double StatResponse::GetLatency() {
+    return timediff(this->reqtime, this->resptime);
+}
+
+std::string StatResponse::GetLatencyAsString() {
+    std::stringstream sstm;
+    double diff = GetLatency();
+    sstm << "latency: " << std::setprecision(3) << std::fixed << diff << "ms";
+    return sstm.str();
 }
 
 double StatResponse::timediff(struct timeval req, struct timeval resp) {

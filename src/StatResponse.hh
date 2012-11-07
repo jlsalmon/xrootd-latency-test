@@ -25,17 +25,47 @@ class StatResponse {
 public:
     StatResponse();
     virtual ~StatResponse();
-    
-    /**
-     * 
-     * @param fs
-     */
-    void DoStat(XrdCl::FileSystem fs, std::string statpath);
-    
+
     /**
      * 
      */
     void init();
+
+    /**
+     * 
+     * @param fs
+     */
+    virtual void DoStat(XrdCl::FileSystem &fs, std::string statpath) = 0;
+
+    /**
+     * 
+     * @return 
+     */
+    XrdCl::StatInfo* GetStatInfo();
+
+    /**
+     * 
+     * @return 
+     */
+    XrdCl::XRootDStatus GetXrootdStatus();
+    
+    /**
+     * 
+     * @return 
+     */
+    bool IsDone();
+
+    /**
+     * 
+     * @return 
+     */
+    double GetLatency();
+    
+    /**
+     * 
+     * @return 
+     */
+    std::string GetLatencyAsString();
     
     /**
      * 
@@ -43,7 +73,7 @@ public:
      * @return 
      */
     double mstime(struct timeval tv);
-    
+
     /**
      * 
      * @param req
@@ -53,10 +83,11 @@ public:
     double timediff(struct timeval req, struct timeval resp);
 
 protected:
+    bool done;
     struct timeval reqtime;
     struct timeval resptime;
     XrdCl::StatInfo *si;
-    XrdCl::XRootDStatus *status;
+    XrdCl::XRootDStatus status;
 };
 
 #endif	/* STATRESPONSE_HH */

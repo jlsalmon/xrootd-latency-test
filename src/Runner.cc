@@ -31,8 +31,11 @@ int main(int argc, const char* argv[]) {
 
     int c;
 
-    while ((c = getopt(argc, (char**) argv, "p:s:f:lvSFh?")) != -1) {
+    while ((c = getopt(argc, (char**) argv, "H:p:s:f:lvSFh?")) != -1) {
         switch (c) {
+            case 'H':
+                xrdlt->addHostsFromFile(optarg);
+                break;
             case 'p':
                 xrdlt->setStatPath(optarg);
                 break;
@@ -64,8 +67,7 @@ int main(int argc, const char* argv[]) {
                 return EXIT_FAILURE;
         }
     }
-
-    xrdlt->addHost("eosdev", 1094);
+    
     xrdlt->Start();
 
     return EXIT_SUCCESS;

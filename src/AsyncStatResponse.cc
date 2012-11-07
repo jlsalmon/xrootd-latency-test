@@ -28,7 +28,8 @@ AsyncStatResponse::AsyncStatResponse() {
 AsyncStatResponse::~AsyncStatResponse() {
 }
 
-void AsyncStatResponse::DoStat(XrdCl::FileSystem fs, std::string statpath) {
+void AsyncStatResponse::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
+    StatResponse::init();
     fs.Stat(statpath, this, 10);
 }
 
@@ -36,11 +37,13 @@ void AsyncStatResponse::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
 
     gettimeofday(&this->resptime, NULL);
-    this->status = status;
+    this->status = *status;
     
     if (response != NULL) {
-        XrdCl::StatInfo *si = NULL;
-        response->Get(si);
-        this->si = si;
+        //XrdCl::StatInfo *si = NULL;
+        //response->Get(&this->si);
+        //this->si = *si;
     }
+    
+    this->done = true;
 }

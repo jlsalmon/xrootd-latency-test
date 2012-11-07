@@ -26,6 +26,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
 #include <map>
 #include <vector>
@@ -34,7 +35,7 @@
 
 class XrdLatencyTest {
 public:
-    
+
     std::map<std::string, StatResponse*> hosts;
     std::string currenthost;
     std::string statpath;
@@ -60,17 +61,56 @@ public:
      * @param statinterval: time between stats (if looping)
      * @param floodinterval: time between floods (if looping)
      */
-    XrdLatencyTest(std::string statpath, 
-                   bool flood, 
-                   bool loop, 
-                   size_t statinterval, 
-                   size_t floodinterval);
+    XrdLatencyTest(std::string statpath,
+            bool flood,
+            bool loop,
+            size_t statinterval,
+            size_t floodinterval);
 
     /**
      * Destructor
      */
     virtual ~XrdLatencyTest();
 
+    /**
+     * Start the thread doing the measurements
+     * 
+     * @return 
+     */
+    bool Start();
+
+    /**
+     * 
+     * @param fs
+     * @return 
+     */
+    bool Probe(XrdCl::FileSystem &fs);
+
+    /**
+     * 
+     * @param fs
+     * @return 
+     */
+    void Stat(XrdCl::FileSystem &fs);
+
+    /**
+     * Stop the thread doing the measurements.
+     *
+     * @return 
+     */
+    bool Stop();
+
+    /**
+     * 
+     * @param measurement
+     * @return true if measured, false if nothing measured
+     */
+    std::map<std::string, StatResponse*> GetLatencies();
+
+    /**
+     * Print the latest results.
+     */
+    void PrintOut();
 
     /**
      * Add a host to this test.
@@ -89,6 +129,12 @@ public:
      * @return 
      */
     int addHost(std::string host);
+
+    /**
+     * 
+     * @param path
+     */
+    void addHostsFromFile(std::string path);
 
     /**
      * Print out the current list of hosts.
@@ -145,55 +191,12 @@ public:
      * @param seconds: the number of seconds between floods
      */
     void setFloodInterval(int seconds);
-    
+
     /**
      * 
      * @param async
      */
     void setAsync(bool async);
-
-    /**
-     * Print the latest results to out and errors to err.
-     * 
-     * @param out: successful results
-     * @param err: error results
-     */
-    void PrintOut(std::string &out, std::string &err);
-
-    /**
-     * Start the thread doing the measurements
-     * 
-     * @return 
-     */
-    bool Start();
-    
-    /**
-     * 
-     * @param fs
-     * @return 
-     */
-    void Stat(XrdCl::FileSystem &fs);
-
-    /**
-     * Stop the thread doing the measurements.
-     *
-     * @return 
-     */
-    bool Stop();
-
-    /**
-     * 
-     * @param measurement
-     * @return true if measured, false if nothing measured
-     */
-    bool GetLatencies(std::map<std::string, double> &measurement);
-
-    /**
-     * 
-     * @param measurements
-     * @return true if measured, false if nothing measured
-     */
-    bool GetFloodRate(std::map<std::string, double> &measurements);
 
     /**
      * 

@@ -53,6 +53,107 @@ XrdLatencyTest::XrdLatencyTest(std::string statpath,
 XrdLatencyTest::~XrdLatencyTest() {
 }
 
+bool XrdLatencyTest::Start() {
+
+    using namespace XrdCl;
+
+    std::map<std::string, StatResponse*>::iterator it;
+    int n = 1;
+    if (flood) n = 1000;
+
+    do {
+        for (it = hosts.begin(); it != hosts.end(); ++it) {
+
+            currenthost = it->first;
+            URL url(proto + currenthost);
+            FileSystem fs(url);
+
+            // Probe each host to make sure it's alive.
+            if (!Probe(fs)) continue;
+
+            for (int i = 0; i < n; i++) {
+                Stat(fs);
+            }
+        }
+
+        // Wait until we have received a response from all hosts
+        bool wait = true;
+        int readycount = 0;
+
+        while (wait) {
+            for (it = hosts.begin(); it != hosts.end(); ++it) {
+                if (it->second->IsDone()) {
+                    readycount++;
+                }
+            }
+
+            if (hosts.size() == readycount) {
+                wait = false;
+            }
+        }
+
+        PrintOut();
+
+        sleep(statinterval);
+    } while (loop);
+}
+
+bool XrdLatencyTest::Probe(XrdCl::FileSystem &fs) {
+    StatResponse *sr = new SyncStatResponse();
+    sr->DoStat(fs, statpath);
+    return (sr->GetXrootdStatus().IsOK());
+}
+
+void XrdLatencyTest::Stat(XrdCl::FileSystem &fs) {
+    StatResponse *sr;
+
+    if (this->async) {
+        sr = new AsyncStatResponse();
+    } else {
+        sr = new SyncStatResponse();
+    }
+
+    sr->DoStat(fs, statpath);
+    hosts[currenthost] = sr;
+}
+
+bool XrdLatencyTest::Stop() {
+
+}
+
+std::map<std::string, StatResponse*> XrdLatencyTest::GetLatencies() {
+    return hosts;
+}
+
+void XrdLatencyTest::PrintOut() {
+    std::map<std::string, StatResponse*>::iterator i;
+    double total = 0;
+    
+    for (i = hosts.begin(); i != hosts.end(); ++i) {
+//        std::cout << i->second->GetXrootdStatus().ToString();
+//        std::cout << "\t";
+//        std::cout << i->second->GetLatencyAsString() << std::endl;
+        
+        total += i->second->GetLatency();
+    }
+    
+    std::cout << "hosts: " << hosts.size();
+    std::cout << " avg: " << total / hosts.size() << "ms" << std::endl;
+}
+
+void XrdLatencyTest::addHostsFromFile(std::string path) {
+    std::ifstream in(path.c_str(), std::ios_base::in);
+    
+    if (in.good()) {
+        std::string line;
+        while (std::getline(in, line)) {
+            addHost(line);
+        }    
+    }
+    
+    in.close();
+}
+
 int XrdLatencyTest::addHost(std::string host, int port) {
     std::stringstream ss;
     ss << port;
@@ -60,7 +161,7 @@ int XrdLatencyTest::addHost(std::string host, int port) {
 }
 
 int XrdLatencyTest::addHost(std::string host) {
-    StatResponse *sr;
+    StatResponse *sr = 0;
     hosts.insert(std::make_pair(host, sr));
 }
 
@@ -103,90 +204,6 @@ void XrdLatencyTest::setFloodInterval(int seconds) {
 
 void XrdLatencyTest::setAsync(bool async) {
     this->async = async;
-}
-
-void XrdLatencyTest::PrintOut(std::string& out, std::string& err) {
-
-}
-
-bool XrdLatencyTest::Start() {
-
-    using namespace XrdCl;
-
-    std::map<std::string, StatResponse*>::iterator it;
-    int n = 1;
-    if (flood) n = 1000;
-
-
-    do {
-        for (it = hosts.begin(); it != hosts.end(); ++it) {
-
-            // Probe each host to make sure it's alive.
-
-            currenthost = it->first;
-
-            URL url(proto + currenthost);
-            FileSystem fs(url);
-
-            for (int i = 0; i < n; i++) {
-                Stat(fs);
-            }
-        }
-
-        // Wait until we have received all responses.
-        // Define timeout length (10s).
-
-        sleep(statinterval);
-    } while (loop);
-}
-
-void XrdLatencyTest::Stat(XrdCl::FileSystem &fs) {
-    StatResponse *sr;
-    
-    if (this->async) {
-        sr = new AsyncStatResponse();
-    } else {
-        sr = new SyncStatResponse();
-    }
-    
-    hosts[currenthost] = sr;
-    sr->init();
-    sr->DoStat(fs, statpath);
-}
-
-//bool XrdLatencyTest::AsyncStat(XrdCl::FileSystem &fs, StatResponse &sr) {
-//    using namespace XrdCl;
-//
-//    hosts.at(currenthost); 
-//    sr.->DoStat(fs, statpath);
-//}
-//
-//bool XrdLatencyTest::SyncStat(XrdCl::FileSystem &fs, StatResponse &sr) {
-//    using namespace XrdCl;
-//
-//    StatInfo *si = 0;
-//    struct timeval reqtime, resptime;
-//
-//    gettimeofday(&reqtime, NULL);
-//    fs.Stat(statpath, si, 10);
-//    gettimeofday(&resptime, NULL);
-//
-//    double diff = ((resptime.tv_sec * 1000000.0 + resptime.tv_usec)
-//            - (reqtime.tv_sec * 1000000.0 + reqtime.tv_usec)) / 1000;
-//
-//    std::cout << "Latency: " << std::setprecision(3) << std::fixed << diff << " ms" << std::endl;
-//}
-
-bool XrdLatencyTest::Stop() {
-
-}
-
-bool XrdLatencyTest::GetLatencies(std::map<std::string, double>& measurement) {
-
-}
-
-bool XrdLatencyTest::GetFloodRate(std::map<std::string, double>& measurements) {
-
 }
 
 void XrdLatencyTest::setVerbose(bool verbose) {

@@ -38,7 +38,7 @@ public:
      * @param fs
      * @param statpath
      */
-    void DoStat(XrdCl::FileSystem fs, std::string statpath);
+    void DoStat(XrdCl::FileSystem &fs, std::string statpath);
     
 private:
 
