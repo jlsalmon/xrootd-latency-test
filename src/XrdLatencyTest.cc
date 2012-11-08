@@ -54,8 +54,12 @@ XrdLatencyTest::~XrdLatencyTest() {
 }
 
 bool XrdLatencyTest::Start() {
-
     using namespace XrdCl;
+
+    if (!hosts.size()) {
+        std::cout << "No hosts defined. Stopping." << std::endl;
+        exit(0);
+    }
 
     std::map<std::string, StatResponse*>::iterator it;
     int n = 1;
@@ -101,6 +105,12 @@ bool XrdLatencyTest::Start() {
 bool XrdLatencyTest::Probe(XrdCl::FileSystem &fs) {
     StatResponse *sr = new SyncStatResponse();
     sr->DoStat(fs, statpath);
+    hosts[currenthost] = sr;
+
+    if (!sr->GetXrootdStatus().IsOK()) {
+        std::cout << currenthost << statpath << " not responding: ";
+        std::cout << sr->GetXrootdStatus().ToStr() << std::endl;
+    }
     return (sr->GetXrootdStatus().IsOK());
 }
 
@@ -118,7 +128,7 @@ void XrdLatencyTest::Stat(XrdCl::FileSystem &fs) {
 }
 
 bool XrdLatencyTest::Stop() {
-
+    loop = false;
 }
 
 std::map<std::string, StatResponse*> XrdLatencyTest::GetLatencies() {
@@ -128,29 +138,36 @@ std::map<std::string, StatResponse*> XrdLatencyTest::GetLatencies() {
 void XrdLatencyTest::PrintOut() {
     std::map<std::string, StatResponse*>::iterator i;
     double total = 0;
-    
+    int errors = 0;
+
     for (i = hosts.begin(); i != hosts.end(); ++i) {
-//        std::cout << i->second->GetXrootdStatus().ToString();
-//        std::cout << "\t";
-//        std::cout << i->second->GetLatencyAsString() << std::endl;
-        
-        total += i->second->GetLatency();
+        if (i->second->GetXrootdStatus().IsOK()) {
+            total += i->second->GetLatency();
+        } else {
+            errors++;
+        }
     }
-    
+
     std::cout << "hosts: " << hosts.size();
-    std::cout << " avg: " << total / hosts.size() << "ms" << std::endl;
+    std::cout << " errors: " << errors;
+    std::cout << " avg: " << std::setprecision(3) << std::fixed;
+    std::cout << total / hosts.size() << "ms" << std::endl;
 }
 
 void XrdLatencyTest::addHostsFromFile(std::string path) {
     std::ifstream in(path.c_str(), std::ios_base::in);
-    
+
     if (in.good()) {
+        std::cout << "Opened host file: " << path << std::endl;
         std::string line;
         while (std::getline(in, line)) {
             addHost(line);
-        }    
+        }
+    } else {
+        std::cout << "Error opening host file: " << path << std::endl;
+        exit(1);
     }
-    
+
     in.close();
 }
 

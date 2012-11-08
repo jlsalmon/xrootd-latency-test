@@ -22,9 +22,9 @@
 #include <iostream>
 
 StatResponse::StatResponse() {
-    gettimeofday(&this->reqtime, NULL);
     this->si = 0;
     this->status = 0;
+    this->done = false;
 }
 
 StatResponse::~StatResponse() {

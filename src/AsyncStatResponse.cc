@@ -41,7 +41,7 @@ void AsyncStatResponse::HandleResponse(XrdCl::XRootDStatus* status,
     
     if (response != NULL) {
         //XrdCl::StatInfo *si = NULL;
-        //response->Get(&this->si);
+        response->Get(this->si);
         //this->si = *si;
     }
     

@@ -22,53 +22,85 @@
 #include <iostream>
 
 void usage() {
-    std::cout << "Usage: xrd-latency-test <options>" << std::endl;
+    using namespace std;
+    cout << "usage: xrd-latency-test [-l] [-S] [-F] [-p stat-path] ";
+    cout << "[-s stat-int] [-f flood-int] [-v] [-h] host-file                           " << endl;
+    cout << endl;
+    cout << "positional arguments:                                                      " << endl;
+    cout << "   host-file       path to a file containing hostname:port combinations    " << endl;
+    cout << endl;
+    cout << "optional arguments:                                                        " << endl;
+    cout << "   -p stat-path    path to stat on the remote machine                      " << endl;
+    cout << "   -s stat-int     time delay between stats if in stat mode                " << endl;
+    cout << "   -f flood-int    time delay between stat floods if in flood mode         " << endl;
+    cout << "   -l              enable loop mode                                        " << endl;
+    cout << "   -S              enable synchronous mode                                 " << endl;
+    cout << "   -F              enable flood mode                                       " << endl;
+    cout << "   -v              be verbose                                              " << endl;
+    cout << "   -h              show this help message and exit                         " << endl;
+
 }
 
-int main(int argc, const char* argv[]) {
-
-    XrdLatencyTest *xrdlt = new XrdLatencyTest();
-
+bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
     int c;
 
     while ((c = getopt(argc, (char**) argv, "H:p:s:f:lvSFh?")) != -1) {
         switch (c) {
             case 'H':
-                xrdlt->addHostsFromFile(optarg);
+                xrdlt.addHostsFromFile(optarg);
                 break;
             case 'p':
-                xrdlt->setStatPath(optarg);
+                xrdlt.setStatPath(optarg);
                 break;
             case 's':
-                xrdlt->setStatInterval(atoi(optarg));
+                xrdlt.setStatInterval(atoi(optarg));
                 break;
             case 'f':
-                xrdlt->setFloodInterval(atoi(optarg));
+                xrdlt.setFloodInterval(atoi(optarg));
                 break;
             case 'F':
-                xrdlt->setFlood(true);
+                xrdlt.setFlood(true);
                 break;
             case 'l':
-                xrdlt->setLoop(true);
+                xrdlt.setLoop(true);
                 break;
             case 'S':
-                xrdlt->setAsync(false);
+                xrdlt.setAsync(false);
                 break;
             case 'v':
-                xrdlt->setVerbose(true);
+                xrdlt.setVerbose(true);
                 break;
             case 'h':
             case '?':
                 usage();
-                return EXIT_SUCCESS;
+                exit(EXIT_SUCCESS);
             default:
                 std::cout << "Unknown option: " << (char) c << std::endl;
                 usage();
-                return EXIT_FAILURE;
+                return false;
         }
     }
-    
-    xrdlt->Start();
+
+    if (!xrdlt.hosts.size()) {
+        std::cout << "Hosts file empty or none given." << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+int main(int argc, const char* argv[]) {
+
+    XrdLatencyTest *xrdlt = new XrdLatencyTest();
+    bool ok = parseargs(*xrdlt, argc, argv);
+
+    if (ok) {
+        xrdlt->Start();
+    } else {
+        std::cout << "Some required arguments were not given.";
+        std::cout << "Type \"xrd-latency-test -h\" for help." << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
