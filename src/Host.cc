@@ -16,52 +16,36 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include "StatResponse.hh"
+#include "Host.hh"
 #include <sys/time.h>
 #include <iomanip>
 #include <iostream>
 
-StatResponse::StatResponse() {
-    si = 0;
+Host::Host() {
+    statinfo = 0;
     status = 0;
     done = false;
+    enabled = true;
 }
 
-StatResponse::~StatResponse() {
+Host::~Host() {
 }
 
-void StatResponse::init() {
-    gettimeofday(&this->reqtime, NULL);
+double Host::GetLatency() {
+    return timediff(reqtime, resptime);
 }
 
-XrdCl::StatInfo* StatResponse::GetStatInfo() {
-    return this->si;
-}
-
-XrdCl::XRootDStatus StatResponse::GetXrootdStatus() {
-    return this->status;
-}
-
-bool StatResponse::IsDone() {
-    return this->done;
-}
-
-double StatResponse::GetLatency() {
-    return timediff(this->reqtime, this->resptime);
-}
-
-std::string StatResponse::GetLatencyAsString() {
+std::string Host::GetLatencyAsString() {
     std::stringstream sstm;
-    double diff = GetLatency();
-    sstm << "latency: " << std::setprecision(3) << std::fixed << diff << "ms";
+    sstm << "latency: " << std::setprecision(3) << std::fixed
+            << GetLatency() << "ms";
     return sstm.str();
 }
 
-double StatResponse::timediff(struct timeval req, struct timeval resp) {
+double Host::timediff(struct timeval req, struct timeval resp) {
     return mstime(resp) - mstime(req);
 }
 
-double StatResponse::mstime(struct timeval tv) {
-    // convert tv_sec & tv_usec to millisecond
+double Host::mstime(struct timeval tv) {
     return (tv.tv_sec * 1000000.0 + tv.tv_usec) / 1000.0;
 }

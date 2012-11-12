@@ -19,24 +19,24 @@
 #include <sys/time.h>
 #include <iostream>
 
-#include "SyncStatResponse.hh"
+#include "SyncHost.hh"
 #include "XrdCl/XrdClFileSystem.hh"
 
-SyncStatResponse::SyncStatResponse() {
+SyncHost::SyncHost() {
 }
 
-SyncStatResponse::~SyncStatResponse() {
+SyncHost::~SyncHost() {
 }
 
-void SyncStatResponse::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
-    StatResponse::init();
+void SyncHost::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
+    Host::Init();
     XrdCl::XRootDStatus status;
 
-    status = fs.Stat(statpath, this->si, 10);
+    status = fs.Stat(statpath, statinfo, 10);
 
-    gettimeofday(&this->resptime, NULL);
+    gettimeofday(&resptime, NULL);
     
     this->status = status;
-    this->done = true;
+    done = true;
 }
 

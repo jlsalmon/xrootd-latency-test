@@ -16,22 +16,17 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef STATRESPONSE_HH
-#define	STATRESPONSE_HH
+#ifndef HOST_HH
+#define	HOST_HH
 
 #include "XrdCl/XrdClFileSystem.hh"
 #include "XrdSys/XrdSysPthread.hh"
 #include <sys/time.h>
 
-class StatResponse {
+class Host {
 public:
-    StatResponse();
-    virtual ~StatResponse();
-
-    /**
-     * 
-     */
-    void init();
+    Host();
+    virtual ~Host();
 
     /**
      * 
@@ -41,21 +36,57 @@ public:
 
     /**
      * 
-     * @return 
      */
-    XrdCl::StatInfo* GetStatInfo();
+    void Init() {
+        gettimeofday(&reqtime, NULL);
+        done = false;
+    }
 
     /**
      * 
      * @return 
      */
-    XrdCl::XRootDStatus GetXrootdStatus();
+    XrdCl::StatInfo* GetStatInfo() {
+        return statinfo;
+    }
 
     /**
      * 
      * @return 
      */
-    bool IsDone();
+    XrdCl::XRootDStatus GetXrootdStatus() {
+        return status;
+    }
+
+    /**
+     * 
+     */
+    void Enable() {
+        enabled = true;
+    }
+
+    /**
+     * 
+     */
+    void Disable() {
+        enabled = false;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    bool IsEnabled() {
+        return enabled;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    bool IsDone() {
+        return done;
+    }
 
     /**
      * 
@@ -69,7 +100,9 @@ public:
      */
     std::string GetLatencyAsString();
 
+private:
     /**
+     * convert tv_sec & tv_usec to millisecond
      * 
      * @param tv
      * @return 
@@ -86,12 +119,13 @@ public:
 
 protected:
     bool done;
-    XrdCl::StatInfo *si;
+    bool enabled;
+    XrdCl::StatInfo *statinfo;
     XrdCl::XRootDStatus status;
     XrdSysCondVar cv;
     struct timeval reqtime;
     struct timeval resptime;
 };
 
-#endif	/* STATRESPONSE_HH */
+#endif	/* HOST_HH */
 

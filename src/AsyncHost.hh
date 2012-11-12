@@ -16,21 +16,15 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef ASYNCSTATRESPONSE_HH
-#define	ASYNCSTATRESPONSE_HH
+#ifndef ASYNCHOST_HH
+#define	ASYNCHOST_HH
 
-#include "StatResponse.hh"
+#include "Host.hh"
 
-
-class AsyncStatResponse : public StatResponse, public XrdCl::ResponseHandler {
+class AsyncHost : public Host, public XrdCl::ResponseHandler {
 public:
-    AsyncStatResponse(XrdSysCondVar cv);
-    virtual ~AsyncStatResponse();
-    
-    /**
-     * 
-     */
-    void init();
+    AsyncHost(XrdSysCondVar cv);
+    virtual ~AsyncHost();
     
     /**
      * 
@@ -47,9 +41,7 @@ public:
      */
     virtual void HandleResponse(XrdCl::XRootDStatus* status,
             XrdCl::AnyObject* response);
-private:
-
 };
 
-#endif	/* ASYNCSTATRESPONSE_HH */
+#endif	/* ASYNCHOST_HH */
 

@@ -16,22 +16,17 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef SYNCSTATRESPONSE_HH
-#define	SYNCSTATRESPONSE_HH
+#ifndef SYNCHOST_HH
+#define	SYNCHOST_HH
 
-#include "StatResponse.hh"
+#include "Host.hh"
 #include "XrdCl/XrdClFileSystem.hh"
 
 
-class SyncStatResponse : public StatResponse {
+class SyncHost : public Host {
 public:
-    SyncStatResponse();
-    virtual ~SyncStatResponse();
-    
-    /**
-     * 
-     */
-    void init();
+    SyncHost();
+    virtual ~SyncHost();
     
     /**
      * 
@@ -39,10 +34,7 @@ public:
      * @param statpath
      */
     void DoStat(XrdCl::FileSystem &fs, std::string statpath);
-    
-private:
-
 };
 
-#endif	/* SYNCSTATRESPONSE_HH */
+#endif	/* SYNCHOST_HH */
 

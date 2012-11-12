@@ -17,36 +17,34 @@
 //------------------------------------------------------------------------------
 
 #include "XrdCl/XrdClFileSystem.hh"
-#include "AsyncStatResponse.hh"
+#include "AsyncHost.hh"
 
 #include <sys/time.h>
 #include <iomanip>
 #include <iostream>
 
-AsyncStatResponse::AsyncStatResponse(XrdSysCondVar cv) {
+AsyncHost::AsyncHost(XrdSysCondVar cv) {
     this->cv = cv;
 }
 
-AsyncStatResponse::~AsyncStatResponse() {
+AsyncHost::~AsyncHost() {
 }
 
-void AsyncStatResponse::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
-    StatResponse::init();
+void AsyncHost::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
+    Host::Init();
     fs.Stat(statpath, this, 10);
 }
 
-void AsyncStatResponse::HandleResponse(XrdCl::XRootDStatus* status,
+void AsyncHost::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
     
     cv.Lock();
-    gettimeofday(&this->resptime, NULL);
+    gettimeofday(&resptime, NULL);
 
-    if (response != NULL) {
-        response->Get(this->si);
-    }
+    if (response != NULL) response->Get(statinfo);
 
     this->status = *status;
-    this->done = true;
+    done = true;
     
     cv.Signal();
     cv.UnLock();

@@ -25,10 +25,10 @@ void usage() {
     using namespace std;
     cout << "usage: xrd-latency-test [-l] [-S] [-F] [-p stat-path] ";
     cout << "[-s stat-int] [-f flood-int] [-v] [-h] host-file                           " << endl;
-    cout << endl;
+    cout << "                                                                           " << endl;
     cout << "positional arguments:                                                      " << endl;
     cout << "   host-file       path to a file containing hostname:port combinations    " << endl;
-    cout << endl;
+    cout << "                                                                           " << endl;
     cout << "optional arguments:                                                        " << endl;
     cout << "   -p stat-path    path to stat on the remote machine                      " << endl;
     cout << "   -s stat-int     time delay between stats if in stat mode                " << endl;
@@ -93,9 +93,8 @@ bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
 int main(int argc, const char* argv[]) {
 
     XrdLatencyTest *xrdlt = new XrdLatencyTest();
-    bool ok = parseargs(*xrdlt, argc, argv);
 
-    if (ok) {
+    if (parseargs(*xrdlt, argc, argv)) {
         xrdlt->Start();
     } else {
         std::cout << "type \"xrd-latency-test -h\" for help." << std::endl;

@@ -20,7 +20,7 @@
 #define	XRDLATENCYTEST_H
 
 #include "XrdCl/XrdClFileSystem.hh"
-#include "StatResponse.hh"
+#include "Host.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -36,7 +36,7 @@
 class XrdLatencyTest {
 public:
 
-    std::map<std::string, StatResponse*> hosts;
+    std::map<std::string, Host*> hosts;
     std::string currenthost;
     std::string statpath;
     std::string proto;
@@ -112,7 +112,7 @@ public:
      * @param measurement
      * @return true if measured, false if nothing measured
      */
-    std::map<std::string, StatResponse*> GetLatencies();
+    std::map<std::string, Host*> GetLatencies();
 
     /**
      * Print the latest results.
