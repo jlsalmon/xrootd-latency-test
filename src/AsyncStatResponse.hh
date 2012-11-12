@@ -24,7 +24,7 @@
 
 class AsyncStatResponse : public StatResponse, public XrdCl::ResponseHandler {
 public:
-    AsyncStatResponse();
+    AsyncStatResponse(XrdSysCondVar cv);
     virtual ~AsyncStatResponse();
     
     /**

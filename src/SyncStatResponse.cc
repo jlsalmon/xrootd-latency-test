@@ -35,6 +35,7 @@ void SyncStatResponse::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
     status = fs.Stat(statpath, this->si, 10);
 
     gettimeofday(&this->resptime, NULL);
+    
     this->status = status;
     this->done = true;
 }

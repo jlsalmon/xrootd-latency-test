@@ -46,6 +46,7 @@ public:
     int statinterval;
     int floodinterval;
     bool verbose;
+    XrdSysCondVar cv;
 
     /**
      * Default constructor
@@ -99,6 +100,12 @@ public:
      * @return 
      */
     bool Stop();
+    
+    /**
+     * 
+     * @return 
+     */
+    bool WaitHosts();
 
     /**
      * 
@@ -137,11 +144,6 @@ public:
     void addHostsFromFile(std::string path);
 
     /**
-     * Print out the current list of hosts.
-     */
-    void printHosts();
-
-    /**
      * Remove a host from this test.
      * 
      * @param host: the hostname of the host to be removed
@@ -164,45 +166,59 @@ public:
      * 
      * @param path: the local path on the remote box.
      */
-    void setStatPath(std::string path);
+    void setStatPath(std::string path) {
+        statpath = path;
+    }
 
     /**
      * 
      * @param flood
      */
-    void setFlood(bool flood);
+    void setFlood(bool flood) {
+        this->flood = flood;
+    }
 
     /**
      * 
      * @param loop
      */
-    void setLoop(bool loop);
+    void setLoop(bool loop) {
+        this->loop = loop;
+    }
 
     /**
      * Set the interval between single stat requests during operation.
      * 
      * @param seconds: the number of seconds between stats
      */
-    void setStatInterval(int seconds);
+    void setStatInterval(int seconds) {
+        statinterval = seconds;
+    }
 
     /**
      * Set the interval between stat floods during operation.
      * 
      * @param seconds: the number of seconds between floods
      */
-    void setFloodInterval(int seconds);
+    void setFloodInterval(int seconds) {
+        floodinterval = seconds;
+    }
 
     /**
      * 
      * @param async
      */
-    void setAsync(bool async);
+    void setAsync(bool async) {
+        this->async = async;
+    }
 
     /**
      * 
      * @param verbose
      */
-    void setVerbose(bool verbose);
+    void setVerbose(bool verbose) {
+        this->verbose = verbose;
+    }
 };
 
 #endif	/* XRDLATENCYTEST_H */

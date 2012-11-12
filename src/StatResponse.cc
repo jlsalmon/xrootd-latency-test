@@ -22,9 +22,9 @@
 #include <iostream>
 
 StatResponse::StatResponse() {
-    this->si = 0;
-    this->status = 0;
-    this->done = false;
+    si = 0;
+    status = 0;
+    done = false;
 }
 
 StatResponse::~StatResponse() {

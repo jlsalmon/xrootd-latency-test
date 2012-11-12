@@ -20,6 +20,8 @@
 #define	STATRESPONSE_HH
 
 #include "XrdCl/XrdClFileSystem.hh"
+#include "XrdSys/XrdSysPthread.hh"
+#include <sys/time.h>
 
 class StatResponse {
 public:
@@ -48,7 +50,7 @@ public:
      * @return 
      */
     XrdCl::XRootDStatus GetXrootdStatus();
-    
+
     /**
      * 
      * @return 
@@ -60,13 +62,13 @@ public:
      * @return 
      */
     double GetLatency();
-    
+
     /**
      * 
      * @return 
      */
     std::string GetLatencyAsString();
-    
+
     /**
      * 
      * @param tv
@@ -84,10 +86,11 @@ public:
 
 protected:
     bool done;
-    struct timeval reqtime;
-    struct timeval resptime;
     XrdCl::StatInfo *si;
     XrdCl::XRootDStatus status;
+    XrdSysCondVar cv;
+    struct timeval reqtime;
+    struct timeval resptime;
 };
 
 #endif	/* STATRESPONSE_HH */

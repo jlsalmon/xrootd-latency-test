@@ -38,17 +38,13 @@ void usage() {
     cout << "   -F              enable flood mode                                       " << endl;
     cout << "   -v              be verbose                                              " << endl;
     cout << "   -h              show this help message and exit                         " << endl;
-
 }
 
 bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
     int c;
 
-    while ((c = getopt(argc, (char**) argv, "H:p:s:f:lvSFh?")) != -1) {
+    while ((c = getopt(argc, (char**) argv, "p:s:f:lSFvh?")) != -1) {
         switch (c) {
-            case 'H':
-                xrdlt.addHostsFromFile(optarg);
-                break;
             case 'p':
                 xrdlt.setStatPath(optarg);
                 break;
@@ -75,14 +71,19 @@ bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
                 usage();
                 exit(EXIT_SUCCESS);
             default:
-                std::cout << "Unknown option: " << (char) c << std::endl;
+                std::cout << "unknown option: " << (char) c << std::endl;
                 usage();
                 return false;
         }
     }
 
-    if (!xrdlt.hosts.size()) {
-        std::cout << "Hosts file empty or none given." << std::endl;
+    if (optind < argc) {
+        std::string hostfile = argv[optind++];
+        std::cout << "host file:            " << hostfile << std::endl;
+        xrdlt.addHostsFromFile(hostfile);
+        
+    } else {
+        std::cout << "hosts file empty or none given." << std::endl;
         return false;
     }
 
@@ -97,8 +98,7 @@ int main(int argc, const char* argv[]) {
     if (ok) {
         xrdlt->Start();
     } else {
-        std::cout << "Some required arguments were not given.";
-        std::cout << "Type \"xrd-latency-test -h\" for help." << std::endl;
+        std::cout << "type \"xrd-latency-test -h\" for help." << std::endl;
         return EXIT_FAILURE;
     }
 

@@ -21,8 +21,10 @@
 
 #include <sys/time.h>
 #include <iomanip>
+#include <iostream>
 
-AsyncStatResponse::AsyncStatResponse() {
+AsyncStatResponse::AsyncStatResponse(XrdSysCondVar cv) {
+    this->cv = cv;
 }
 
 AsyncStatResponse::~AsyncStatResponse() {
@@ -35,15 +37,17 @@ void AsyncStatResponse::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
 
 void AsyncStatResponse::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
-
+    
+    cv.Lock();
     gettimeofday(&this->resptime, NULL);
-    this->status = *status;
-    
+
     if (response != NULL) {
-        //XrdCl::StatInfo *si = NULL;
         response->Get(this->si);
-        //this->si = *si;
     }
-    
+
+    this->status = *status;
     this->done = true;
+    
+    cv.Signal();
+    cv.UnLock();
 }
