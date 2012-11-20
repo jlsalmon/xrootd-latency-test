@@ -20,18 +20,29 @@
 #define	SYNCHOST_HH
 
 #include "Host.hh"
-#include "XrdCl/XrdClFileSystem.hh"
-
 
 class SyncHost : public Host {
 public:
+    
+    /**
+     * Constructor which takes an XrdSysCondVar, used to avoid having
+     * to have a busy-wait loop to check when all the async responses 
+     * are back. 
+     * 
+     * @param cv: condition variable to use
+     */
     SyncHost(XrdSysCondVar *cv);
+    
+    /**
+     * Destructor (unused)
+     */
     virtual ~SyncHost();
     
     /**
+     * Perform the actual stat.
      * 
-     * @param fs
-     * @param statpath
+     * @param url: pointer to the URL to stat.
+     * @param statpath: path on the remote box to stat.
      */
     void* DoStat(XrdCl::URL *url, std::string *statpath);
 };

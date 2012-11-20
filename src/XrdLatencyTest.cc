@@ -20,15 +20,6 @@
 #include "AsyncHost.hh"
 #include "SyncHost.hh"
 
-#include "XrdCl/XrdClFileSystem.hh"
-#include "XrdCl/XrdClURL.hh"
-#include "XrdSys/XrdSysPthread.hh"
-
-#include <ctime>
-#include <sys/time.h>
-#include <iomanip>
-#include <xrootd/XrdSys/XrdSysPthread.hh>
-
 XrdLatencyTest::XrdLatencyTest() {
     currenthost = "";
     statpath = "/tmp";
@@ -87,7 +78,7 @@ void XrdLatencyTest::Run() {
 
     std::map<std::string, Host*>::iterator it;
     int n = 1;
-    if (flood) n = 1000;
+    if (flood) n = 100;
 
     do {
         for (it = hosts.begin(); it != hosts.end(); ++it) {

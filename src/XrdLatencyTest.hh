@@ -19,23 +19,17 @@
 #ifndef XRDLATENCYTEST_H
 #define	XRDLATENCYTEST_H
 
-#include "XrdCl/XrdClFileSystem.hh"
 #include "Host.hh"
 
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <sstream>
+#include "XrdCl/XrdClURL.hh"
+#include "XrdSys/XrdSysPthread.hh"
+#include "XrdCl/XrdClFileSystem.hh"
+
 #include <fstream>
-#include <algorithm>
-#include <map>
-#include <vector>
-#include <stdio.h>
-#include <stdlib.h>
 
 class XrdLatencyTest {
 public:
-    
+
     std::map<std::string, Host*> hosts;
     std::string currenthost;
     std::string statpath;
@@ -75,34 +69,33 @@ public:
     virtual ~XrdLatencyTest();
 
     /**
-     * Start the thread doing the measurements
+     * Start the thread doing the measurements.
      * 
-     * @return 
+     * @return true if the thread was started, false otherwise
      */
     bool Start();
 
     /**
-     * 
-     * @return 
+     * Static wrapper to Run()
      */
     static void* StaticRun(void* args);
 
     /**
-     * 
+     * Start making the actual measurements.
      */
     void Run();
 
     /**
      * Stop the thread doing the measurements.
      *
-     * @return 
+     * @return true if the thread was stopped, false otherwise
      */
     bool Stop();
 
     /**
+     * Get the latest results.
      * 
-     * @param measurement
-     * @return true if measured, false if nothing measured
+     * @return a map containing "hostname/Host object" key/values 
      */
     std::map<std::string, Host*> GetLatencies();
 
@@ -116,7 +109,7 @@ public:
      * 
      * @param host: the hostname of the host to be added
      * @param port: the xrootd port of the host
-     * @return
+     * @return true if the host was added, false otherwise
      */
     int addHost(std::string host, int port);
 
@@ -125,13 +118,16 @@ public:
      * 
      * @param host: the hostname/port of the host to be added in the
      *              form: "<hostname>[:port]"
-     * @return 
+     * @return true if the host was added, false otherwise
      */
     int addHost(std::string host);
 
     /**
+     * Insert a bunch of hosts into the test from a file. The file must 
+     * contain tokens of the format <hostname>:port and be separated
+     * by a newline.
      * 
-     * @param path
+     * @param path: the path to the host file
      */
     void addHostsFromFile(std::string path);
 
@@ -140,7 +136,7 @@ public:
      * 
      * @param host: the hostname of the host to be removed
      * @param port: the xrootd port that this host uses
-     * @return 
+     * @return true if the host was removed, false otherwise
      */
     int removeHost(std::string host, int port);
 
@@ -149,7 +145,7 @@ public:
      * 
      * @param host: the hostname/port of the host to be removed in the
      *              form: "<hostname>[:port]"
-     * @return 
+     * @return true if the host was removed, false otherwise
      */
     int removeHost(std::string host);
 
@@ -163,16 +159,20 @@ public:
     }
 
     /**
+     * Whether to use flood mode or not, i.e. perform a bunch of stats
+     * each time instead of just a single one. Defaults to false.
      * 
-     * @param flood
+     * @param flood: true/false flood or not
      */
     void setFlood(bool flood) {
         this->flood = flood;
     }
 
     /**
+     * Whether to run in loop mode or not, i.e. do a one-shot stat or
+     * keep shooting forever. Defaults to false.
      * 
-     * @param loop
+     * @param loop: true/false loop or not
      */
     void setLoop(bool loop) {
         this->loop = loop;
@@ -180,6 +180,7 @@ public:
 
     /**
      * Set the interval between single stat requests during operation.
+     * Defaults to 1.
      * 
      * @param seconds: the number of seconds between stats
      */
@@ -188,7 +189,8 @@ public:
     }
 
     /**
-     * Set the interval between stat floods during operation.
+     * Set the interval between stat floods during operation. Defaults
+     * to 10.
      * 
      * @param seconds: the number of seconds between floods
      */
@@ -197,16 +199,19 @@ public:
     }
 
     /**
+     * Whether to run in asynchronous mode or not, i.e. whether to make
+     * asynchronous requests via XrdCl. Defaults to true.
      * 
-     * @param async
+     * @param async: true/false async mode or not
      */
     void setAsync(bool async) {
         this->async = async;
     }
 
     /**
+     * Whether to run in verbose mode or not. Defaults to false.
      * 
-     * @param verbose
+     * @param verbose: true/false verbose or not
      */
     void setVerbose(bool verbose) {
         this->verbose = verbose;

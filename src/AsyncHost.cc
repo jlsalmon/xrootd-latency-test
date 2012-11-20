@@ -17,15 +17,6 @@
 //------------------------------------------------------------------------------
 
 #include "AsyncHost.hh"
-#include "XrdCl/XrdClFileSystem.hh"
-#include "XrdCl/XrdClURL.hh"
-
-#include <cstdlib>
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <xrootd/XrdCl/XrdClStatus.hh>
 
 AsyncHost::AsyncHost(XrdSysCondVar *cv) {
     this->cv = cv;

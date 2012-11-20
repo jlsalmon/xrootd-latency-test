@@ -16,13 +16,7 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <sys/time.h>
-#include <iostream>
-#include <xrootd/XrdCl/XrdClStatus.hh>
-#include <xrootd/XrdSys/XrdSysPthread.hh>
-
 #include "SyncHost.hh"
-#include "XrdCl/XrdClFileSystem.hh"
 
 SyncHost::SyncHost(XrdSysCondVar *cv) {
     this->cv = cv;

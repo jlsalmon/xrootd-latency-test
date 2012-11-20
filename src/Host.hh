@@ -20,7 +20,6 @@
 #define	HOST_HH
 
 #include "XrdCl/XrdClFileSystem.hh"
-#include "XrdSys/XrdSysPthread.hh"
 
 #include <sys/time.h>
 #include <iomanip>
@@ -28,17 +27,27 @@
 
 class Host {
 public:
-    Host();
-    virtual ~Host();
-    
+
     /**
+     * Default constructor
+     */
+    Host();
+
+    /**
+     * Destructor (unused)
+     */
+    virtual ~Host();
+
+    /**
+     * Abstract function declaration to perform the actual stat.
      * 
-     * @param fs
+     * @param url: pointer to the URL to stat.
+     * @param statpath: path on the remote box to stat.
      */
     virtual void* DoStat(XrdCl::URL *url, std::string *statpath) = 0;
 
     /**
-     * 
+     * Initialize this host
      */
     void Init() {
         gettimeofday(&reqtime, NULL);
@@ -46,77 +55,78 @@ public:
     }
 
     /**
+     * Grab the current StatInfo object from this host.
      * 
-     * @return 
+     * @return latest StatInfo object 
      */
     XrdCl::StatInfo* GetStatInfo() {
         return statinfo;
     }
 
     /**
+     * Grab the current XRootDStatus object from this host.
      * 
-     * @return 
+     * @return latest XRootDStatus object
      */
     XrdCl::XRootDStatus GetXrootdStatus() {
         return status;
     }
 
     /**
-     * 
+     * Enable this host for testing.
      */
     void Enable() {
         disabled = false;
     }
 
     /**
-     * 
+     * Disable this host for testing.
      */
     void Disable() {
         disabled = true;
     }
 
     /**
-     * 
-     * @return 
+     * @return whether this host is disabled or not.
      */
     bool IsDisabled() {
         return disabled;
     }
 
     /**
-     * 
-     * @return 
+     * @return whether this host has received and processed its
+     * response yet or not.
      */
     bool IsDone() {
         return done;
     }
 
     /**
-     * 
-     * @return 
+     * @return the most recent latency value for this host.
      */
     double GetLatency();
 
     /**
-     * 
-     * @return 
+     * @return the most recent latency value for this host as a string.
      */
     std::string GetLatencyAsString();
 
 private:
+
     /**
-     * convert tv_sec & tv_usec to millisecond
+     * Convert tv_sec & tv_usec to milliseconds.
      * 
-     * @param tv
-     * @return 
+     * @param tv: timeval to convert
+     * @return timeval in milliseconds
      */
     double mstime(struct timeval tv);
 
     /**
+     * Calculate the time difference between two times.
      * 
-     * @param req
-     * @param resp
-     * @return 
+     * @param req: request (start) time
+     * @param resp: response (end) time
+     * @return time difference in milliseconds
      */
     double timediff(struct timeval req, struct timeval resp);
 
