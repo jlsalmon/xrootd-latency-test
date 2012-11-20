@@ -27,7 +27,7 @@ AsyncHost::~AsyncHost() {
 
 void* AsyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
     XrdCl::FileSystem fs(*url);
-    Host::Init();
+    Host::Initialize();
     fs.Stat(*statpath, this, 5);
 }
 
@@ -35,14 +35,12 @@ void AsyncHost::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
 
     cv->Lock();
-    gettimeofday(&resptime, NULL);
+    Host::Finalize();
 
     if (response != NULL) response->Get(statinfo);
     this->status = *status;
+    if (this->status->IsError()) Disable();
 
-    if (status->IsError()) Disable();
-
-    done = true;
     cv->Signal();
     cv->UnLock();
 }

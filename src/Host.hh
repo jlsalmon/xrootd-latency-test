@@ -49,9 +49,14 @@ public:
     /**
      * Initialize this host
      */
-    void Init() {
+    void Initialize() {
         gettimeofday(&reqtime, NULL);
         done = false;
+    }
+    
+    void Finalize() {
+        gettimeofday(&resptime, NULL);
+        done = true;
     }
 
     /**

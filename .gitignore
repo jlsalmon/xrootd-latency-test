@@ -5,3 +5,4 @@ dist
 .cproject
 .project
 .dep.inc
+.DS_Store

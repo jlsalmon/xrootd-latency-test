@@ -29,13 +29,11 @@ void* SyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
     XrdCl::XRootDStatus status;
     XrdCl::FileSystem fs(*url);
 
-    Host::Init();
-    
+    Host::Initialize();
     status = fs.Stat(*statpath, statinfo, 5);
-    gettimeofday(&resptime, NULL);
+    Host::Finalize();
 
-    if (status.IsError()) Disable();
     this->status = status;
-    done = true;
+    if (this->status.IsError()) Disable();
 }
 

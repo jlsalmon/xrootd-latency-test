@@ -115,6 +115,7 @@ std::map<std::string, Host*> XrdLatencyTest::GetLatencies() {
 }
 
 void XrdLatencyTest::PrintOut() {
+    // Flood mode? Show flood rate
     std::map<std::string, Host*>::iterator i;
     std::string maxhost, minhost;
     double curr = 0, total = 0, min = 0, max = 0;
@@ -132,10 +133,6 @@ void XrdLatencyTest::PrintOut() {
             continue;
         }
 
-        curr = i->second->GetLatency();
-        std::cout << "hostname: " << i->first << "\tlatency: ";
-        std::cout << curr << "ms" << std::endl;
-
         if (curr > max) {
             max = curr;
             maxhost = i->first;
@@ -151,6 +148,10 @@ void XrdLatencyTest::PrintOut() {
         } else {
             errors++;
         }
+
+        curr = i->second->GetLatency();
+        std::cout << "hostname: " << i->first << "\tlatency: ";
+        std::cout << curr << "ms" << std::endl;
     }
 
     if (verbose) {
@@ -161,7 +162,6 @@ void XrdLatencyTest::PrintOut() {
         std::cout << std::setprecision(3) << std::fixed;
         std::cout << "   avg: " << total / hosts.size() << "ms";
         std::cout << "   min: " << min << "ms";
-        //std::cout << " (" << minhost << ")";
         std::cout << "   max: " << max << "ms" << std::endl;
     }
 }
