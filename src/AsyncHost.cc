@@ -16,36 +16,42 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include "XrdCl/XrdClFileSystem.hh"
 #include "AsyncHost.hh"
+#include "XrdCl/XrdClFileSystem.hh"
+#include "XrdCl/XrdClURL.hh"
 
-#include <sys/time.h>
-#include <iomanip>
+#include <cstdlib>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <xrootd/XrdCl/XrdClStatus.hh>
 
-AsyncHost::AsyncHost(XrdSysCondVar cv) {
+AsyncHost::AsyncHost(XrdSysCondVar *cv) {
     this->cv = cv;
 }
 
 AsyncHost::~AsyncHost() {
 }
 
-void AsyncHost::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
+void* AsyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
+    XrdCl::FileSystem fs(*url);
     Host::Init();
-    fs.Stat(statpath, this, 10);
+    fs.Stat(*statpath, this, 5);
 }
 
 void AsyncHost::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
-    
-    cv.Lock();
+
+    cv->Lock();
     gettimeofday(&resptime, NULL);
 
     if (response != NULL) response->Get(statinfo);
-
     this->status = *status;
+
+    if (status->IsError()) Disable();
+
     done = true;
-    
-    cv.Signal();
-    cv.UnLock();
+    cv->Signal();
+    cv->UnLock();
 }

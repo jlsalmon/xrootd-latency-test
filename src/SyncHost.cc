@@ -18,24 +18,29 @@
 
 #include <sys/time.h>
 #include <iostream>
+#include <xrootd/XrdCl/XrdClStatus.hh>
+#include <xrootd/XrdSys/XrdSysPthread.hh>
 
 #include "SyncHost.hh"
 #include "XrdCl/XrdClFileSystem.hh"
 
-SyncHost::SyncHost() {
+SyncHost::SyncHost(XrdSysCondVar *cv) {
+    this->cv = cv;
 }
 
 SyncHost::~SyncHost() {
 }
 
-void SyncHost::DoStat(XrdCl::FileSystem &fs, std::string statpath) {
-    Host::Init();
+void* SyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
     XrdCl::XRootDStatus status;
+    XrdCl::FileSystem fs(*url);
 
-    status = fs.Stat(statpath, statinfo, 10);
-
-    gettimeofday(&resptime, NULL);
+    Host::Init();
     
+    status = fs.Stat(*statpath, statinfo, 5);
+    gettimeofday(&resptime, NULL);
+
+    if (status.IsError()) Disable();
     this->status = status;
     done = true;
 }

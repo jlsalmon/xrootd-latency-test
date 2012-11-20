@@ -25,7 +25,7 @@
 
 class SyncHost : public Host {
 public:
-    SyncHost();
+    SyncHost(XrdSysCondVar *cv);
     virtual ~SyncHost();
     
     /**
@@ -33,7 +33,7 @@ public:
      * @param fs
      * @param statpath
      */
-    void DoStat(XrdCl::FileSystem &fs, std::string statpath);
+    void* DoStat(XrdCl::URL *url, std::string *statpath);
 };
 
 #endif	/* SYNCHOST_HH */

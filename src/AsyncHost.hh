@@ -21,9 +21,13 @@
 
 #include "Host.hh"
 
+#include <sys/time.h>
+#include <iomanip>
+#include <iostream>
+
 class AsyncHost : public Host, public XrdCl::ResponseHandler {
 public:
-    AsyncHost(XrdSysCondVar cv);
+    AsyncHost(XrdSysCondVar *cv);
     virtual ~AsyncHost();
     
     /**
@@ -31,7 +35,7 @@ public:
      * @param 
      * @param statpath
      */
-    void DoStat(XrdCl::FileSystem &fs, std::string statpath);
+    void* DoStat(XrdCl::URL *url, std::string *statpath);
     
     /**
      * Handle response

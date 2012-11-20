@@ -21,18 +21,21 @@
 
 #include "XrdCl/XrdClFileSystem.hh"
 #include "XrdSys/XrdSysPthread.hh"
+
 #include <sys/time.h>
+#include <iomanip>
+#include <iostream>
 
 class Host {
 public:
     Host();
     virtual ~Host();
-
+    
     /**
      * 
      * @param fs
      */
-    virtual void DoStat(XrdCl::FileSystem &fs, std::string statpath) = 0;
+    virtual void* DoStat(XrdCl::URL *url, std::string *statpath) = 0;
 
     /**
      * 
@@ -62,22 +65,22 @@ public:
      * 
      */
     void Enable() {
-        enabled = true;
+        disabled = false;
     }
 
     /**
      * 
      */
     void Disable() {
-        enabled = false;
+        disabled = true;
     }
 
     /**
      * 
      * @return 
      */
-    bool IsEnabled() {
-        return enabled;
+    bool IsDisabled() {
+        return disabled;
     }
 
     /**
@@ -119,10 +122,10 @@ private:
 
 protected:
     bool done;
-    bool enabled;
+    bool disabled;
     XrdCl::StatInfo *statinfo;
     XrdCl::XRootDStatus status;
-    XrdSysCondVar cv;
+    XrdSysCondVar *cv;
     struct timeval reqtime;
     struct timeval resptime;
 };

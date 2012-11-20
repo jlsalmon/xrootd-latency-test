@@ -17,15 +17,16 @@
 //------------------------------------------------------------------------------
 
 #include "Host.hh"
-#include <sys/time.h>
-#include <iomanip>
-#include <iostream>
 
 Host::Host() {
     statinfo = 0;
     status = 0;
     done = false;
-    enabled = true;
+    disabled = false;
+    reqtime.tv_sec = 0;
+    reqtime.tv_usec = 0;
+    resptime.tv_sec = 0;
+    resptime.tv_usec = 0;
 }
 
 Host::~Host() {

@@ -95,7 +95,10 @@ int main(int argc, const char* argv[]) {
     XrdLatencyTest *xrdlt = new XrdLatencyTest();
 
     if (parseargs(*xrdlt, argc, argv)) {
+        
         xrdlt->Start();
+        XrdSysThread::Join(xrdlt->thread, NULL);
+    
     } else {
         std::cout << "type \"xrd-latency-test -h\" for help." << std::endl;
         return EXIT_FAILURE;

@@ -35,7 +35,7 @@
 
 class XrdLatencyTest {
 public:
-
+    
     std::map<std::string, Host*> hosts;
     std::string currenthost;
     std::string statpath;
@@ -46,6 +46,7 @@ public:
     int statinterval;
     int floodinterval;
     bool verbose;
+    pthread_t thread;
     XrdSysCondVar cv;
 
     /**
@@ -82,17 +83,14 @@ public:
 
     /**
      * 
-     * @param fs
      * @return 
      */
-    bool Probe(XrdCl::FileSystem &fs);
+    static void* StaticRun(void* args);
 
     /**
      * 
-     * @param fs
-     * @return 
      */
-    void Stat(XrdCl::FileSystem &fs);
+    void Run();
 
     /**
      * Stop the thread doing the measurements.
@@ -100,12 +98,6 @@ public:
      * @return 
      */
     bool Stop();
-    
-    /**
-     * 
-     * @return 
-     */
-    bool WaitHosts();
 
     /**
      * 
