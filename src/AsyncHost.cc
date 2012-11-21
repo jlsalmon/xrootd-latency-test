@@ -29,6 +29,7 @@ void* AsyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
     XrdCl::FileSystem fs(*url);
     Host::Initialize();
     fs.Stat(*statpath, this, 5);
+    return 0;
 }
 
 void AsyncHost::HandleResponse(XrdCl::XRootDStatus* status,

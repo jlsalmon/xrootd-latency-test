@@ -29,7 +29,8 @@ XrdLatencyTest::XrdLatencyTest() {
     loop = false;
     verbose = false;
     statinterval = 1;
-    floodinterval = 10;
+    floodinterval = 2;
+    floodcount = 100;
     cv = XrdSysCondVar(0);
 }
 
@@ -73,7 +74,7 @@ void XrdLatencyTest::Run() {
 
     std::map<std::string, Host*>::iterator it;
     int n = 1;
-    if (flood) n = 100;
+    if (flood) n = floodcount;
 
     do {
         for (it = hosts.begin(); it != hosts.end(); ++it) {
@@ -96,7 +97,7 @@ void XrdLatencyTest::Run() {
         }
 
         PrintOut();
-        sleep(statinterval);
+        (flood) ? sleep(floodinterval) : sleep(statinterval);
     } while (loop);
 }
 
@@ -104,6 +105,10 @@ bool XrdLatencyTest::Stop() {
     XrdSysThread::Cancel(thread);
     loop = false;
     return true;
+}
+
+double XrdLatencyTest::GetLatency(Host* host) {
+    return timediff(host->GetReqTime(), host->GetRespTime());
 }
 
 std::map<std::string, Host*> XrdLatencyTest::GetLatencies() {
@@ -115,6 +120,7 @@ void XrdLatencyTest::PrintOut() {
     std::map<std::string, Host*>::iterator i;
     std::string maxhost, minhost;
     double curr = 0, total = 0, min = 0, max = 0;
+    double first = 0, last = 0, rate = 0;
     int errors = 0, disabled = 0, pending = 0;
 
     for (i = hosts.begin(); i != hosts.end(); ++i) {
@@ -129,15 +135,32 @@ void XrdLatencyTest::PrintOut() {
             continue;
         }
 
-        if (curr > max) {
+        curr = GetLatency(i->second);
+
+        // Find maximum latency
+        if (max == 0 || curr > max) {
             max = curr;
             maxhost = i->first;
         }
 
+        // Find minimum latency
         if (min == 0 || curr < min) {
             min = curr;
             minhost = i->first;
         }
+
+        // Find first request time
+        if (first == 0 || mstime(i->second->GetReqTime()) < first) {
+            first = mstime(i->second->GetReqTime());
+        }
+
+        // Find last response time
+        if (last == 0 || mstime(i->second->GetRespTime()) > last) {
+            last = mstime(i->second->GetRespTime());
+        }
+
+        // Calculate flood rate
+        rate = (hosts.size() * floodcount) / (last - first);
 
         if (i->second->GetXrootdStatus()->IsOK()) {
             total += curr;
@@ -145,22 +168,26 @@ void XrdLatencyTest::PrintOut() {
             errors++;
         }
 
-        curr = i->second->GetLatency();
         std::cout << std::setprecision(3) << std::fixed;
         std::cout << "hostname: " << i->first << "\tlatency: ";
-        std::cout << curr << "ms" << "\t" << i->second->GetXrootdStatus();
+        std::cout << curr << "ms";
         std::cout << std::endl;
     }
 
     if (verbose) {
-        std::cout << "   good: " << hosts.size() - errors - disabled;
-        std::cout << "   bad: " << errors;
-        std::cout << "   disabled: " << disabled;
-        std::cout << "   pending: " << pending;
+        std::cout << "  good: " << hosts.size() - errors - disabled;
+        std::cout << "  bad: " << errors;
+        std::cout << "  disabled: " << disabled;
+        std::cout << "  pending: " << pending;
         std::cout << std::setprecision(3) << std::fixed;
-        std::cout << "   avg: " << total / hosts.size() << "ms";
-        std::cout << "   min: " << min << "ms";
-        std::cout << "   max: " << max << "ms" << std::endl;
+        std::cout << "  avg: " << total / hosts.size() << "ms";
+        std::cout << "  min: " << min << "ms";
+        std::cout << "  max: " << max << "ms" << std::endl;
+
+        std::cout << "  total time for " << hosts.size() - errors - disabled;
+        std::cout << " host(s) with " << ((flood) ? floodcount : 1);
+        std::cout << " stat(s) each: " << last - first << "ms";
+        std::cout << "  rate: " << rate << " stats/sec" << std::endl;
     }
 }
 
@@ -188,13 +215,7 @@ void XrdLatencyTest::addHost(std::string host, int port) {
 
 void XrdLatencyTest::addHost(std::string hostname) {
     Host *host = 0;
-
-    if (this->async) {
-        host = new AsyncHost(&cv);
-    } else {
-        host = new SyncHost(&cv);
-    }
-
+    (async) ? host = new AsyncHost(&cv) : host = new SyncHost(&cv);
     hosts.insert(std::make_pair(hostname, host));
 }
 
@@ -206,4 +227,12 @@ void XrdLatencyTest::removeHost(std::string host, int port) {
 
 void XrdLatencyTest::removeHost(std::string host) {
     hosts.erase(host);
+}
+
+double XrdLatencyTest::timediff(struct timeval req, struct timeval resp) {
+    return mstime(resp) - mstime(req);
+}
+
+double XrdLatencyTest::mstime(struct timeval tv) {
+    return (tv.tv_sec * 1000000.0 + tv.tv_usec) / 1000.0;
 }

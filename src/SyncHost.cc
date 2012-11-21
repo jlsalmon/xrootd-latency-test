@@ -35,5 +35,6 @@ void* SyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
 
     this->status = &status;
     if (this->status->IsError()) Disable();
+    return 0;
 }
 

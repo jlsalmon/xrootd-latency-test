@@ -27,7 +27,7 @@ extern "C" void __libc_freeres(void);
 
 void usage() {
     cout << "usage: xrd-latency-test [-l] [-S] [-F] [-p stat-path] ";
-    cout << "[-s stat-int] [-f flood-int] [-v] [-h] host-file                           " << endl;
+    cout << "[-s stat-int] [-f flood-int] [-c flood-count] [-v] [-h] host-file          " << endl;
     cout << "                                                                           " << endl;
     cout << "positional arguments:                                                      " << endl;
     cout << "   host-file       path to a file containing hostname:port combinations    " << endl;
@@ -36,6 +36,7 @@ void usage() {
     cout << "   -p stat-path    path to stat on the remote machine                      " << endl;
     cout << "   -s stat-int     time delay between stats if in stat mode                " << endl;
     cout << "   -f flood-int    time delay between stat floods if in flood mode         " << endl;
+    cout << "   -c flood-count  number of stats in a flood                              " << endl;
     cout << "   -l              enable loop mode                                        " << endl;
     cout << "   -S              enable synchronous mode                                 " << endl;
     cout << "   -F              enable flood mode                                       " << endl;
@@ -56,6 +57,9 @@ bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
                 break;
             case 'f':
                 xrdlt.setFloodInterval(atoi(optarg));
+                break;
+            case 'c':
+                xrdlt.setFloodCount(atoi(optarg));
                 break;
             case 'F':
                 xrdlt.setFlood(true);
@@ -108,6 +112,7 @@ int main(int argc, const char* argv[]) {
             cout << "loop mode:            " << boolalpha << xrdlt->loop << endl;
             cout << "stat interval:        " << xrdlt->statinterval << endl;
             cout << "flood interval:       " << xrdlt->floodinterval << endl;
+            cout << "flood count:          " << xrdlt->floodcount << endl;
         }
 
         // Start the show
@@ -119,9 +124,9 @@ int main(int argc, const char* argv[]) {
 
     } else {
         cout << "type \"xrd-latency-test -h\" for help." << endl;
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
 

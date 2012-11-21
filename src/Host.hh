@@ -31,12 +31,23 @@ public:
     /**
      * Default constructor
      */
-    Host();
+    Host() {
+        response = 0;
+        statinfo = 0;
+        status = 0;
+        done = false;
+        disabled = false;
+        reqtime.tv_sec = 0;
+        reqtime.tv_usec = 0;
+        resptime.tv_sec = 0;
+        resptime.tv_usec = 0;
+    }
 
     /**
      * Destructor (unused)
      */
-    virtual ~Host();
+    virtual ~Host() {
+    };
 
     /**
      * Abstract function declaration to perform the actual stat.
@@ -53,7 +64,7 @@ public:
         gettimeofday(&reqtime, NULL);
         done = false;
     }
-    
+
     /**
      * Finalize this host
      */
@@ -112,33 +123,18 @@ public:
     }
 
     /**
-     * @return the most recent latency value for this host.
+     * @return this host's request time in milliseconds
      */
-    double GetLatency();
+    struct timeval GetReqTime() {
+        return reqtime;
+    }
 
     /**
-     * @return the most recent latency value for this host as a string.
+     * @return this host's response time in milliseconds
      */
-    std::string GetLatencyAsString();
-
-private:
-
-    /**
-     * Convert tv_sec & tv_usec to milliseconds.
-     * 
-     * @param tv: timeval to convert
-     * @return timeval in milliseconds
-     */
-    double mstime(struct timeval tv);
-
-    /**
-     * Calculate the time difference between two times.
-     * 
-     * @param req: request (start) time
-     * @param resp: response (end) time
-     * @return time difference in milliseconds
-     */
-    double timediff(struct timeval req, struct timeval resp);
+    struct timeval GetRespTime() {
+        return resptime;
+    }
 
 protected:
     bool done;
