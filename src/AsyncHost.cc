@@ -37,8 +37,12 @@ void AsyncHost::HandleResponse(XrdCl::XRootDStatus* status,
     cv->Lock();
     Host::Finalize();
 
-    if (response != NULL) response->Get(statinfo);
-    this->status = *status;
+    if (response != NULL) {
+        this->response = response;
+        response->Get(statinfo);
+    }
+
+    this->status = status;
     if (this->status->IsError()) Disable();
 
     cv->Signal();

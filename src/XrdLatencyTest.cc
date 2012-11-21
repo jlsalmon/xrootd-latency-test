@@ -27,6 +27,7 @@ XrdLatencyTest::XrdLatencyTest() {
     async = true;
     flood = false;
     loop = false;
+    verbose = false;
     statinterval = 1;
     floodinterval = 10;
     cv = XrdSysCondVar(0);
@@ -35,6 +36,7 @@ XrdLatencyTest::XrdLatencyTest() {
 XrdLatencyTest::XrdLatencyTest(std::string statpath,
         bool flood,
         bool loop,
+        bool verbose,
         size_t statinterval,
         size_t floodinterval) {
 
@@ -43,6 +45,7 @@ XrdLatencyTest::XrdLatencyTest(std::string statpath,
     setLoop(loop);
     setStatInterval(statinterval);
     setFloodInterval(floodinterval);
+    setVerbose(verbose);
 }
 
 XrdLatencyTest::~XrdLatencyTest() {
@@ -64,16 +67,6 @@ void XrdLatencyTest::Run() {
     if (!hosts.size()) {
         std::cout << "no hosts defined." << std::endl;
         exit(0);
-    }
-
-    if (verbose) {
-        std::cout << "host count:           " << hosts.size() << std::endl;
-        std::cout << "stat path:            " << statpath << std::endl;
-        std::cout << "asynchronous:         " << std::boolalpha << async << std::endl;
-        std::cout << "flood mode:           " << std::boolalpha << flood << std::endl;
-        std::cout << "loop mode:            " << std::boolalpha << loop << std::endl;
-        std::cout << "stat interval:        " << statinterval << std::endl;
-        std::cout << "flood interval:       " << floodinterval << std::endl;
     }
 
     std::map<std::string, Host*>::iterator it;
@@ -143,15 +136,17 @@ void XrdLatencyTest::PrintOut() {
             minhost = i->first;
         }
 
-        if (i->second->GetXrootdStatus().IsOK()) {
+        if (i->second->GetXrootdStatus()->IsOK()) {
             total += curr;
         } else {
             errors++;
         }
 
         curr = i->second->GetLatency();
+        std::cout << std::setprecision(3) << std::fixed;
         std::cout << "hostname: " << i->first << "\tlatency: ";
-        std::cout << curr << "ms" << std::endl;
+        std::cout << curr << "ms" << "\t" << i->second->GetXrootdStatus();
+        std::cout << std::endl;
     }
 
     if (verbose) {

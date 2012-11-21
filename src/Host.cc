@@ -19,6 +19,7 @@
 #include "Host.hh"
 
 Host::Host() {
+    response = 0;
     statinfo = 0;
     status = 0;
     done = false;

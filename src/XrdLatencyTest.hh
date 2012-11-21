@@ -60,6 +60,7 @@ public:
     XrdLatencyTest(std::string statpath,
             bool flood,
             bool loop,
+            bool verbose,
             size_t statinterval,
             size_t floodinterval);
 

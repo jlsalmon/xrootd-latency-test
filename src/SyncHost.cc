@@ -33,7 +33,7 @@ void* SyncHost::DoStat(XrdCl::URL *url, std::string *statpath) {
     status = fs.Stat(*statpath, statinfo, 5);
     Host::Finalize();
 
-    this->status = status;
-    if (this->status.IsError()) Disable();
+    this->status = &status;
+    if (this->status->IsError()) Disable();
 }
 

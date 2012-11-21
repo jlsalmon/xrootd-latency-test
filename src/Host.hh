@@ -54,8 +54,13 @@ public:
         done = false;
     }
     
+    /**
+     * Finalize this host
+     */
     void Finalize() {
         gettimeofday(&resptime, NULL);
+        delete this->response;
+        delete this->status;
         done = true;
     }
 
@@ -73,7 +78,7 @@ public:
      * 
      * @return latest XRootDStatus object
      */
-    XrdCl::XRootDStatus GetXrootdStatus() {
+    XrdCl::XRootDStatus* GetXrootdStatus() {
         return status;
     }
 
@@ -138,8 +143,9 @@ private:
 protected:
     bool done;
     bool disabled;
+    XrdCl::AnyObject *response;
     XrdCl::StatInfo *statinfo;
-    XrdCl::XRootDStatus status;
+    XrdCl::XRootDStatus *status;
     XrdSysCondVar *cv;
     struct timeval reqtime;
     struct timeval resptime;

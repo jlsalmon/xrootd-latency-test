@@ -21,8 +21,11 @@
 #include <cstdlib>
 #include <iostream>
 
+using namespace std;
+
+extern "C" void __libc_freeres(void);
+
 void usage() {
-    using namespace std;
     cout << "usage: xrd-latency-test [-l] [-S] [-F] [-p stat-path] ";
     cout << "[-s stat-int] [-f flood-int] [-v] [-h] host-file                           " << endl;
     cout << "                                                                           " << endl;
@@ -71,19 +74,19 @@ bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
                 usage();
                 exit(EXIT_SUCCESS);
             default:
-                std::cout << "unknown option: " << (char) c << std::endl;
+                cout << "unknown option: " << (char) c << endl;
                 usage();
                 return false;
         }
     }
 
     if (optind < argc) {
-        std::string hostfile = argv[optind++];
-        std::cout << "host file:            " << hostfile << std::endl;
+        string hostfile = argv[optind++];
+        cout << "host file:            " << hostfile << endl;
         xrdlt.addHostsFromFile(hostfile);
-        
+
     } else {
-        std::cout << "hosts file empty or none given." << std::endl;
+        cout << "hosts file empty or none given." << endl;
         return false;
     }
 
@@ -91,16 +94,31 @@ bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
 }
 
 int main(int argc, const char* argv[]) {
+    atexit(__libc_freeres);
 
     XrdLatencyTest *xrdlt = new XrdLatencyTest();
 
     if (parseargs(*xrdlt, argc, argv)) {
-        
+
+        if (xrdlt->verbose) {
+            cout << "host count:           " << xrdlt->hosts.size() << endl;
+            cout << "stat path:            " << xrdlt->statpath << endl;
+            cout << "asynchronous:         " << boolalpha << xrdlt->async << endl;
+            cout << "flood mode:           " << boolalpha << xrdlt->flood << endl;
+            cout << "loop mode:            " << boolalpha << xrdlt->loop << endl;
+            cout << "stat interval:        " << xrdlt->statinterval << endl;
+            cout << "flood interval:       " << xrdlt->floodinterval << endl;
+        }
+
+        // Start the show
         xrdlt->Start();
+        // We're running from the command line, so wait for the thread
+        // to exit (or ctrl-C)
         XrdSysThread::Join(xrdlt->thread, NULL);
-    
+        delete xrdlt;
+
     } else {
-        std::cout << "type \"xrd-latency-test -h\" for help." << std::endl;
+        cout << "type \"xrd-latency-test -h\" for help." << endl;
         return EXIT_FAILURE;
     }
 
