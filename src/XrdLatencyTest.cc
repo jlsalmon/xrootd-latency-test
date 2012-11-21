@@ -55,10 +55,12 @@ XrdLatencyTest::~XrdLatencyTest() {
 bool XrdLatencyTest::Start() {
     XrdSysThread::Run(&thread, XrdLatencyTest::StaticRun,
             static_cast<void *> (this), XRDSYSTHREAD_HOLD, "Latency Test Thread");
+    return true;
 }
 
 void* XrdLatencyTest::StaticRun(void* args) {
     reinterpret_cast<XrdLatencyTest*> (args)->Run();
+    return 0;
 }
 
 void XrdLatencyTest::Run() {
@@ -101,6 +103,7 @@ void XrdLatencyTest::Run() {
 bool XrdLatencyTest::Stop() {
     XrdSysThread::Cancel(thread);
     loop = false;
+    return true;
 }
 
 std::map<std::string, Host*> XrdLatencyTest::GetLatencies() {
@@ -177,13 +180,13 @@ void XrdLatencyTest::addHostsFromFile(std::string path) {
     in.close();
 }
 
-int XrdLatencyTest::addHost(std::string host, int port) {
+void XrdLatencyTest::addHost(std::string host, int port) {
     std::stringstream ss;
     ss << port;
     addHost(host += ":" + ss.str());
 }
 
-int XrdLatencyTest::addHost(std::string hostname) {
+void XrdLatencyTest::addHost(std::string hostname) {
     Host *host = 0;
 
     if (this->async) {
@@ -195,12 +198,12 @@ int XrdLatencyTest::addHost(std::string hostname) {
     hosts.insert(std::make_pair(hostname, host));
 }
 
-int XrdLatencyTest::removeHost(std::string host, int port) {
+void XrdLatencyTest::removeHost(std::string host, int port) {
     std::stringstream ss;
     ss << port;
     removeHost(host += ":" + ss.str());
 }
 
-int XrdLatencyTest::removeHost(std::string host) {
+void XrdLatencyTest::removeHost(std::string host) {
     hosts.erase(host);
 }

@@ -110,18 +110,16 @@ public:
      * 
      * @param host: the hostname of the host to be added
      * @param port: the xrootd port of the host
-     * @return true if the host was added, false otherwise
      */
-    int addHost(std::string host, int port);
+    void addHost(std::string host, int port);
 
     /**
      * Add a host to this test.
      * 
      * @param host: the hostname/port of the host to be added in the
      *              form: "<hostname>[:port]"
-     * @return true if the host was added, false otherwise
      */
-    int addHost(std::string host);
+    void addHost(std::string host);
 
     /**
      * Insert a bunch of hosts into the test from a file. The file must 
@@ -137,18 +135,16 @@ public:
      * 
      * @param host: the hostname of the host to be removed
      * @param port: the xrootd port that this host uses
-     * @return true if the host was removed, false otherwise
      */
-    int removeHost(std::string host, int port);
+    void removeHost(std::string host, int port);
 
     /**
      * Remove a host from this test.
      * 
      * @param host: the hostname/port of the host to be removed in the
      *              form: "<hostname>[:port]"
-     * @return true if the host was removed, false otherwise
      */
-    int removeHost(std::string host);
+    void removeHost(std::string host);
 
     /**
      * Set the path to stat on the remote box. Defaults to "/".
