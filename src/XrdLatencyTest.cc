@@ -82,7 +82,6 @@ void XrdLatencyTest::Run() {
         }
     }
     
-    
     do {
         cv.Lock();
         
