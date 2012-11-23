@@ -55,22 +55,22 @@ public:
      * @param n: number of stats to send.
      */
     void DoStat(XrdCl::URL *url, std::string *statpath, int n) {
-        // Clean up first
-        while (!stats.empty()) delete stats.back(), stats.pop_back();
-
-        Stat *stat = 0;
-
+        Reset();
+        
         for (int i = 0; i < n; i++) {
-            (async) ? stat = new AsyncStat(cv)
-                    : stat = new SyncStat(cv);
-
-            stats.push_back(stat);
-            stat->Run(url, statpath);
+            stats.at(i)->Run(url, statpath);
 
             if (stats.front()->IsBad()) {
                 SetDisabled(true);
                 break;
             }
+        }
+    }
+
+    void Reset() {
+        std::vector<Stat*>::iterator i;
+        for (i = stats.begin(); i != stats.end(); ++i) {
+            (*i)->Reset();
         }
     }
 
@@ -95,7 +95,16 @@ public:
     }
 
     double GetFirstRequest() {
-        return mstime(stats.at(0)->GetReqTime());
+        double first = 0;
+
+        std::vector<Stat*>::iterator i;
+        for (i = stats.begin(); i != stats.end(); ++i) {
+            if (first == 0 || mstime((*i)->GetReqTime()) < first) {
+                first = mstime((*i)->GetReqTime());
+            }
+        }
+
+        return first;
     }
 
     double GetLastResponse() {

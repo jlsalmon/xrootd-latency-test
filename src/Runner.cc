@@ -47,7 +47,7 @@ void usage() {
 bool parseargs(XrdLatencyTest &xrdlt, int argc, const char* argv[]) {
     int c;
 
-    while ((c = getopt(argc, (char**) argv, "p:s:f:lSFvh?")) != -1) {
+    while ((c = getopt(argc, (char**) argv, "p:s:f:c:lSFvh?")) != -1) {
         switch (c) {
             case 'p':
                 xrdlt.setStatPath(optarg);

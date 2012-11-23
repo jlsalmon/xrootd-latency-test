@@ -25,38 +25,28 @@
 #include "XrdCl/XrdClFileSystem.hh"
 #include "XrdSys/XrdSysPthread.hh"
 
+#include <iostream>
 #include <sys/time.h>
 
 class Stat {
 public:
 
-    /**
-     * 
-     */
     Stat() {
-        id = "";
         response = 0;
         statinfo = 0;
         status = 0;
         done = false;
         bad = false;
-        Initialize();
-    }
-
-    /**
-     * 
-     */
-    virtual ~Stat() {
-    }
-
-    /**
-     * 
-     */
-    void Initialize() {
         reqtime.tv_sec = 0;
         reqtime.tv_usec = 0;
         resptime.tv_sec = 0;
         resptime.tv_usec = 0;
+    }
+
+    virtual ~Stat() {
+    }
+
+    void Initialize() {
         gettimeofday(&reqtime, NULL);
     }
 
@@ -74,20 +64,25 @@ public:
         gettimeofday(&resptime, NULL);
         done = true;
     }
+    
+    virtual void Reset() {
+        response = 0;
+        statinfo = 0;
+        status = 0;
+        done = false;
+        bad = false;
+        reqtime.tv_sec = 0;
+        reqtime.tv_usec = 0;
+        resptime.tv_sec = 0;
+        resptime.tv_usec = 0;
+    }
 
     bool IsDone() {
         return done;
     }
-    
+
     bool IsBad() {
         return bad;
-    }
-
-    /**
-     * @return this stat's ID
-     */
-    std::string GetID() {
-        return id;
     }
 
     /**
@@ -119,7 +114,6 @@ public:
     }
 
 protected:
-    std::string id;
     bool done;
     bool bad;
     XrdCl::AnyObject *response;

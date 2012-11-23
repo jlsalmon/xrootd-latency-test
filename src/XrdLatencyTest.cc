@@ -63,29 +63,38 @@ void* XrdLatencyTest::StaticRun(void* args) {
 }
 
 void XrdLatencyTest::Run() {
-    using namespace XrdCl;
+    std::map<std::string, Host*>::iterator it;
+    Stat *stat = 0;
+    int n;
+    (flood) ? n = floodcount : n = 1;
 
     if (!hosts.size()) {
         std::cout << "no hosts defined." << std::endl;
         exit(0);
     }
-
-    std::map<std::string, Host*>::iterator it;
-    int n;
-    (flood) ? n = floodcount : n = 1;
-
+    
+    std::cout << "creating stat objects" << std::endl;
+    for (it = hosts.begin(); it != hosts.end(); ++it) {
+        for (int i = 0; i < n; i++) {
+            (async) ? stat = new AsyncStat(&cv)
+                    : stat = new SyncStat(&cv);
+            it->second->stats.push_back(stat);
+        }
+    }
+    
+    
     do {
         cv.Lock();
-
+        
+        std::cout << "running stats" << std::endl;
         for (it = hosts.begin(); it != hosts.end(); ++it) {
 
             if (it->second->IsDisabled()) continue;
 
             currenthost = it->first;
-            URL *url = new URL(proto + currenthost);
+            XrdCl::URL *url = new XrdCl::URL(proto + currenthost);
 
             hosts.at(currenthost)->DoStat(url, &statpath, n);
-            // CHECK AND DISABLE IF NECESSARY
 
             delete url;
         }
@@ -93,9 +102,10 @@ void XrdLatencyTest::Run() {
         std::cout << "waiting" << std::endl;
         if (async) while (WaitHosts()) cv.Wait(5);
 
+        PrintOut();
+
         cv.UnLock();
 
-        PrintOut();
         std::cout << "sleeping" << std::endl;
         (flood) ? sleep(floodinterval) : sleep(statinterval);
     } while (loop);
@@ -132,6 +142,8 @@ double XrdLatencyTest::GetFirstRequest() {
 
     std::map<std::string, Host*>::iterator i;
     for (i = hosts.begin(); i != hosts.end(); i++) {
+        if (i->second->IsDisabled()) continue;
+
         if (first == 0 || i->second->GetFirstRequest() < first) {
             first = i->second->GetFirstRequest();
         }
@@ -144,6 +156,8 @@ double XrdLatencyTest::GetLastResponse() {
 
     std::map<std::string, Host*>::iterator i;
     for (i = hosts.begin(); i != hosts.end(); i++) {
+        if (i->second->IsDisabled()) continue;
+
         if (last == 0 || i->second->GetLastResponse() > last) {
             last = i->second->GetLastResponse();
         }
@@ -162,13 +176,17 @@ void XrdLatencyTest::PrintOut() {
     std::string maxhost, minhost;
     double curr = 0, total = 0, min = 0, max = 0;
     double rate = 0;
-    int errors = 0, disabled = 0, pending = 0;
+    unsigned int errors = 0, disabled = 0, pending = 0;
 
     for (i = hosts.begin(); i != hosts.end(); ++i) {
         host = i->second;
 
         if (host->IsDisabled()) {
             disabled++;
+            if (disabled == hosts.size()) {
+                std::cout << "all hosts are disabled." << std::endl;
+                exit(-1);
+            }
             continue;
         }
 
@@ -179,6 +197,7 @@ void XrdLatencyTest::PrintOut() {
 
         (flood) ? curr = host->GetLatency()
                 : curr = host->GetAverageLatency();
+        total += curr;
 
         // Find maximum latency
         if (max == 0 || curr > max) {
@@ -192,29 +211,14 @@ void XrdLatencyTest::PrintOut() {
             minhost = host->GetHostname();
         }
 
-        // Find first request time
-        //        if (first == 0 || mstime(i->second->GetReqTime()) < first) {
-        //            first = mstime(i->second->GetReqTime());
-        //        }
-        //
-        //        // Find last response time
-        //        if (last == 0 || mstime(i->second->GetRespTime()) > last) {
-        //            last = mstime(i->second->GetRespTime());
-        //        }
-
         // Calculate flood rate (in seconds)
-        rate = (GetTotalTime() * 1000) / (hosts.size() * floodcount);
+        rate = (hosts.size() * floodcount) / (GetTotalTime() / 1000);
 
-        //if (i->second->GetXrootdStatus()->IsOK()) {
-            total += curr;
-        //} else {
-        //    errors++;
-        //}
-
-//        std::cout << std::setprecision(3) << std::fixed;
-//        std::cout << "hostname: " << host->GetHostname() << "\tlatency: ";
-//        std::cout << curr << "ms";
-//        std::cout << std::endl;
+        std::cout << std::setprecision(3) << std::fixed;
+        std::cout << "hostname: " << host->GetHostname();
+        std::cout << ((flood) ? "\tavg latency: " : "\tlatency: ");
+        std::cout << curr << "ms ";
+        std::cout << std::endl;
 
     }
 
@@ -233,7 +237,7 @@ void XrdLatencyTest::PrintOut() {
     std::cout << "  total time for " << hosts.size() - errors - disabled;
     std::cout << " host(s) with " << ((flood) ? floodcount : 1);
     std::cout << " stat(s): " << GetTotalTime() << "ms";
-    std::cout << "  rate: " << rate << " stats/sec" << std::endl;
+    std::cout << "  rate: " << rate << std::endl;
     //}
 }
 

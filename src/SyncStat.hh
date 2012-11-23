@@ -32,6 +32,11 @@ public:
         this->status = &status;
         if (this->status->IsError()) bad = true;
     }
+
+    void Reset() {
+        Stat::Reset();
+        delete statinfo;
+    }
 };
 
 #endif	/* SYNCSTAT_HH */

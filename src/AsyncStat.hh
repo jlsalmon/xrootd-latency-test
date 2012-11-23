@@ -27,6 +27,11 @@ public:
         Stat::Initialize();
         fs.Stat(*statpath, this, 5);
     }
+    
+    void Reset() {
+        Stat::Reset();
+        delete response;
+    }
 
     void HandleResponse(XrdCl::XRootDStatus* status,
             XrdCl::AnyObject* response) {
