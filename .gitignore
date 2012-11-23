@@ -6,3 +6,4 @@ dist
 .project
 .dep.inc
 .DS_Store
+*core*

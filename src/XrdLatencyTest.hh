@@ -86,6 +86,12 @@ public:
      * Start making the actual measurements.
      */
     void Run();
+    
+    /**
+     * 
+     * @return 
+     */
+    bool WaitHosts();
 
     /**
      * Stop the thread doing the measurements.
@@ -94,13 +100,14 @@ public:
      */
     bool Stop();
 
+    double GetTotalTime();
+    
     /**
-     * 
-     * @param host
      * @return 
      */
-    double GetLatency(Host* host);
+    double GetFirstRequest();
 
+    double GetLastResponse();
 
     /**
      * Get the latest results.
@@ -230,25 +237,6 @@ public:
     void setVerbose(bool verbose) {
         this->verbose = verbose;
     }
-
-private:
-
-    /**
-     * Convert tv_sec & tv_usec to milliseconds.
-     * 
-     * @param tv: timeval to convert
-     * @return timeval in milliseconds
-     */
-    double mstime(struct timeval tv);
-
-    /**
-     * Calculate the time difference between two times.
-     * 
-     * @param req: request (start) time
-     * @param resp: response (end) time
-     * @return time difference in milliseconds
-     */
-    double timediff(struct timeval req, struct timeval resp);
 };
 
 #endif	/* XRDLATENCYTEST_H */

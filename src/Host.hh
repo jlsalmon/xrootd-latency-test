@@ -19,9 +19,12 @@
 #ifndef HOST_HH
 #define	HOST_HH
 
+#include "Stat.hh"
+#include "AsyncStat.hh"
+#include "SyncStat.hh"
+
 #include "XrdCl/XrdClFileSystem.hh"
 
-#include <sys/time.h>
 #include <iomanip>
 #include <iostream>
 
@@ -31,16 +34,11 @@ public:
     /**
      * Default constructor
      */
-    Host() {
-        response = 0;
-        statinfo = 0;
-        status = 0;
-        done = false;
+    Host(std::string hostname, bool async, XrdSysCondVar* cv) {
+        this->hostname = hostname;
+        this->async = async;
+        this->cv = cv;
         disabled = false;
-        reqtime.tv_sec = 0;
-        reqtime.tv_usec = 0;
-        resptime.tv_sec = 0;
-        resptime.tv_usec = 0;
     }
 
     /**
@@ -50,61 +48,78 @@ public:
     };
 
     /**
-     * Abstract function declaration to perform the actual stat.
+     * Perform the actual stat.
      * 
      * @param url: pointer to the URL to stat.
      * @param statpath: path on the remote box to stat.
+     * @param n: number of stats to send.
      */
-    virtual void* DoStat(XrdCl::URL *url, std::string *statpath) = 0;
+    void DoStat(XrdCl::URL *url, std::string *statpath, int n) {
+        // Clean up first
+        while (!stats.empty()) delete stats.back(), stats.pop_back();
 
-    /**
-     * Initialize this host
-     */
-    void Initialize() {
-        gettimeofday(&reqtime, NULL);
-        done = false;
+        Stat *stat = 0;
+
+        for (int i = 0; i < n; i++) {
+            (async) ? stat = new AsyncStat(cv)
+                    : stat = new SyncStat(cv);
+
+            stats.push_back(stat);
+            stat->Run(url, statpath);
+
+            if (stats.front()->IsBad()) {
+                SetDisabled(true);
+                break;
+            }
+        }
     }
 
-    /**
-     * Finalize this host
-     */
-    void Finalize() {
-        gettimeofday(&resptime, NULL);
-        delete this->response;
-        delete this->status;
-        done = true;
+    double GetLatency() {
+        Stat* first = stats.at(0);
+        return timediff(first->GetReqTime(), first->GetRespTime());
     }
 
-    /**
-     * Grab the current StatInfo object from this host.
-     * 
-     * @return latest StatInfo object 
-     */
-    XrdCl::StatInfo* GetStatInfo() {
-        return statinfo;
+    double GetAverageLatency() {
+        double average = 0;
+
+        std::vector<Stat*>::iterator i;
+        for (i = stats.begin(); i != stats.end(); ++i) {
+            average += timediff((*i)->GetReqTime(), (*i)->GetRespTime());
+        }
+
+        return average;
     }
 
-    /**
-     * Grab the current XRootDStatus object from this host.
-     * 
-     * @return latest XRootDStatus object
-     */
-    XrdCl::XRootDStatus* GetXrootdStatus() {
-        return status;
+    double GetFloodRate() {
+
     }
 
-    /**
-     * Enable this host for testing.
-     */
-    void Enable() {
-        disabled = false;
+    double GetFirstRequest() {
+        return mstime(stats.at(0)->GetReqTime());
+    }
+
+    double GetLastResponse() {
+        double last = 0;
+
+        std::vector<Stat*>::iterator i;
+        for (i = stats.begin(); i != stats.end(); ++i) {
+            if (last == 0 || mstime((*i)->GetRespTime()) > last) {
+                last = mstime((*i)->GetRespTime());
+            }
+        }
+
+        return last;
+    }
+
+    std::string GetHostname() {
+        return hostname;
     }
 
     /**
      * Disable this host for testing.
      */
-    void Disable() {
-        disabled = true;
+    void SetDisabled(bool disabled) {
+        this->disabled = disabled;
     }
 
     /**
@@ -119,32 +134,43 @@ public:
      * response yet or not.
      */
     bool IsDone() {
-        return done;
+        std::vector<Stat*>::iterator i;
+        for (i = stats.begin(); i != stats.end(); ++i) {
+            if ((*i)->GetXrootdStatus() != NULL
+                    && (*i)->GetXrootdStatus()->IsError()) {
+                SetDisabled(true);
+            }
+            if (!(*i)->IsDone()) return false;
+        }
+        return true;
     }
 
     /**
-     * @return this host's request time in milliseconds
+     * Calculate the time difference between two times.
+     * 
+     * @param req: request (start) time
+     * @param resp: response (end) time
+     * @return time difference in milliseconds
      */
-    struct timeval GetReqTime() {
-        return reqtime;
+    double timediff(struct timeval req, struct timeval resp) {
+        return mstime(resp) - mstime(req);
     }
 
     /**
-     * @return this host's response time in milliseconds
+     * Convert tv_sec & tv_usec to milliseconds.
+     * 
+     * @param tv: timeval to convert
+     * @return timeval in milliseconds
      */
-    struct timeval GetRespTime() {
-        return resptime;
+    double mstime(struct timeval tv) {
+        return (tv.tv_sec * 1000000.0 + tv.tv_usec) / 1000.0;
     }
 
-protected:
-    bool done;
+    std::string hostname;
     bool disabled;
-    XrdCl::AnyObject *response;
-    XrdCl::StatInfo *statinfo;
-    XrdCl::XRootDStatus *status;
+    bool async;
+    std::vector<Stat*> stats;
     XrdSysCondVar *cv;
-    struct timeval reqtime;
-    struct timeval resptime;
 };
 
 #endif	/* HOST_HH */
