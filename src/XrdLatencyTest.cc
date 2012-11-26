@@ -52,6 +52,8 @@ XrdLatencyTest::~XrdLatencyTest() {
 }
 
 bool XrdLatencyTest::Start() {
+    if (!verbose) fclose(stderr);
+
     XrdSysThread::Run(&thread, XrdLatencyTest::StaticRun,
             static_cast<void *> (this), XRDSYSTHREAD_HOLD, "Latency Test Thread");
     return true;
