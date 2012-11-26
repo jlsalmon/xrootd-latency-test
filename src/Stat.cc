@@ -16,42 +16,64 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef ASYNCSTAT_HH
-#define	ASYNCSTAT_HH
-
 #include "Stat.hh"
 
-class AsyncStat : public Stat, XrdCl::ResponseHandler {
-public:
+Stat::Stat() {
+    response = 0;
+    statinfo = 0;
+    status = 0;
+    done = false;
+    bad = false;
+    reqtime.tv_sec = 0;
+    reqtime.tv_usec = 0;
+    resptime.tv_sec = 0;
+    resptime.tv_usec = 0;
+}
 
-    /**
-     * @param cv: condition variable to monitor responses
-     */
-    AsyncStat(XrdSysCondVar *cv);
-    virtual ~AsyncStat();
+Stat::~Stat() {
+}
 
-    /**
-     * Perform the actual stat (async).
-     * 
-     * @param url: the URL to stat
-     * @param statpath: path on the remote box to stat
-     */
-    void Run(XrdCl::URL *url, std::string *statpath);
+void Stat::Initialize() {
+    gettimeofday(&reqtime, NULL);
+}
 
-    /**
-     * Re-initialize this stat for re-use
-     */
-    void Reset();
+void Stat::Finalize() {
+    gettimeofday(&resptime, NULL);
+    done = true;
+}
 
-    /**
-     * Asynchronous response handler.
-     * 
-     * @param status: status of the response
-     * @param response: object containing extra info about the response
-     */
-    void HandleResponse(XrdCl::XRootDStatus* status,
-            XrdCl::AnyObject* response);
-};
+void Stat::Reset() {
+    response = 0;
+    statinfo = 0;
+    status = 0;
+    done = false;
+    bad = false;
+    reqtime.tv_sec = 0;
+    reqtime.tv_usec = 0;
+    resptime.tv_sec = 0;
+    resptime.tv_usec = 0;
+}
 
-#endif	/* ASYNCSTAT_HH */
+bool Stat::IsDone() {
+    return done;
+}
 
+bool Stat::IsBad() {
+    return bad;
+}
+
+XrdCl::StatInfo* Stat::GetStatInfo() {
+    return statinfo;
+}
+
+XrdCl::XRootDStatus* Stat::GetXrootdStatus() {
+    return status;
+}
+
+struct timeval Stat::GetReqTime() {
+    return reqtime;
+}
+
+struct timeval Stat::GetRespTime() {
+    return resptime;
+}

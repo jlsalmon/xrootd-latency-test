@@ -34,125 +34,69 @@ public:
     /**
      * Default constructor
      */
-    Host(std::string hostname, bool async, XrdSysCondVar* cv) {
-        this->hostname = hostname;
-        this->async = async;
-        this->cv = cv;
-        disabled = false;
-    }
+    Host(std::string hostname, bool async, XrdSysCondVar* cv);
 
     /**
      * Destructor (unused)
      */
-    virtual ~Host() {
-    };
+    virtual ~Host();
 
     /**
-     * Perform the actual stat.
+     * Tell this host to perform the actual stat(s).
      * 
      * @param url: pointer to the URL to stat.
      * @param statpath: path on the remote box to stat.
      * @param n: number of stats to send.
      */
-    void DoStat(XrdCl::URL *url, std::string *statpath, int n) {
-        Reset();
-        
-        for (int i = 0; i < n; i++) {
-            stats.at(i)->Run(url, statpath);
+    void DoStat(XrdCl::URL *url, std::string *statpath, int n);
 
-            if (stats.front()->IsBad()) {
-                SetDisabled(true);
-                break;
-            }
-        }
-    }
+    /**
+     * Re-initialize this host to the default state
+     */
+    void Reset();
 
-    void Reset() {
-        std::vector<Stat*>::iterator i;
-        for (i = stats.begin(); i != stats.end(); ++i) {
-            (*i)->Reset();
-        }
-    }
+    /**
+     * @return the latency of the first stat performed (used if
+     * not in flood mode)
+     */
+    double GetLatency();
 
-    double GetLatency() {
-        Stat* first = stats.at(0);
-        return timediff(first->GetReqTime(), first->GetRespTime());
-    }
+    /**
+     * @return the average latency for all stats (used if in
+     * flood mode)
+     */
+    double GetAverageLatency();
 
-    double GetAverageLatency() {
-        double total = 0;
+    /**
+     * @return first request time for this host over all stats.
+     */
+    double GetFirstRequest();
 
-        std::vector<Stat*>::iterator i;
-        for (i = stats.begin(); i != stats.end(); ++i) {
-            total += timediff((*i)->GetReqTime(), (*i)->GetRespTime());
-        }
+    /**
+     * @return last response time for this host over all stats.
+     */
+    double GetLastResponse();
 
-        return total / stats.size();
-    }
-
-    double GetFloodRate() {
-
-    }
-
-    double GetFirstRequest() {
-        double first = 0;
-
-        std::vector<Stat*>::iterator i;
-        for (i = stats.begin(); i != stats.end(); ++i) {
-            if (first == 0 || mstime((*i)->GetReqTime()) < first) {
-                first = mstime((*i)->GetReqTime());
-            }
-        }
-
-        return first;
-    }
-
-    double GetLastResponse() {
-        double last = 0;
-
-        std::vector<Stat*>::iterator i;
-        for (i = stats.begin(); i != stats.end(); ++i) {
-            if (last == 0 || mstime((*i)->GetRespTime()) > last) {
-                last = mstime((*i)->GetRespTime());
-            }
-        }
-
-        return last;
-    }
-
-    std::string GetHostname() {
-        return hostname;
-    }
+    /**
+     * @return this host's hostname.
+     */
+    std::string GetHostname();
 
     /**
      * Disable this host for testing.
      */
-    void SetDisabled(bool disabled) {
-        this->disabled = disabled;
-    }
+    void SetDisabled(bool disabled);
 
     /**
      * @return whether this host is disabled or not.
      */
-    bool IsDisabled() {
-        return disabled;
-    }
+    bool IsDisabled();
 
     /**
      * @return whether this host has received and processed its
      * response yet or not.
      */
-    bool IsDone() {
-        std::vector<Stat*>::iterator i;
-        for (i = stats.begin(); i != stats.end(); ++i) {
-            if ((*i)->GetXrootdStatus() != NULL
-                    && (*i)->GetXrootdStatus()->IsError()) {
-                SetDisabled(true);
-            }
-            if (!(*i)->IsDone()) return false;
-        }
-        return true;
-    }
+    bool IsDone();
 
     /**
      * Calculate the time difference between two times.
@@ -161,9 +105,7 @@ public:
      * @param resp: response (end) time
      * @return time difference in milliseconds
      */
-    double timediff(struct timeval req, struct timeval resp) {
-        return mstime(resp) - mstime(req);
-    }
+    double timediff(struct timeval req, struct timeval resp);
 
     /**
      * Convert tv_sec & tv_usec to milliseconds.
@@ -171,9 +113,7 @@ public:
      * @param tv: timeval to convert
      * @return timeval in milliseconds
      */
-    double mstime(struct timeval tv) {
-        return (tv.tv_sec * 1000000.0 + tv.tv_usec) / 1000.0;
-    }
+    double mstime(struct timeval tv);
 
     std::string hostname;
     bool disabled;

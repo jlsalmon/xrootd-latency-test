@@ -24,31 +24,25 @@
 class SyncStat : public Stat {
 public:
 
-    SyncStat(XrdSysCondVar *cv) {
-        this->cv = cv;
-    }
+    /**
+     * @param cv: condition variable to monitor responses
+     */
+    SyncStat(XrdSysCondVar *cv);
 
-    virtual ~SyncStat() {
-        delete statinfo;
-    }
+    virtual ~SyncStat();
 
-    void Run(XrdCl::URL *url, std::string *statpath) {
-        XrdCl::XRootDStatus status;
-        XrdCl::FileSystem fs(*url);
+    /**
+     * Perform the actual stat (sync).
+     * 
+     * @param url: the URL to stat
+     * @param statpath: path on the remote box to stat
+     */
+    void Run(XrdCl::URL *url, std::string *statpath);
 
-        Stat::Initialize();
-        status = fs.Stat(*statpath, statinfo, 5);
-        Stat::Finalize();
-
-        this->status = &status;
-        if (this->status->IsError()) bad = true;
-    }
-
-    void Reset() {
-        delete statinfo;
-        delete response;
-        Stat::Reset();
-    }
+    /**
+     * Re-initialize this stat for re-use
+     */
+    void Reset();
 };
 
 #endif	/* SYNCSTAT_HH */

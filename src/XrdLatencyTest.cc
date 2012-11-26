@@ -72,7 +72,8 @@ void XrdLatencyTest::Run() {
         std::cout << "no hosts defined." << std::endl;
         exit(0);
     }
-    
+
+    // Fill each host with correct number of Stat objects
     for (it = hosts.begin(); it != hosts.end(); ++it) {
         for (int i = 0; i < n; i++) {
             (async) ? stat = new AsyncStat(&cv)
@@ -80,11 +81,10 @@ void XrdLatencyTest::Run() {
             it->second->stats.push_back(stat);
         }
     }
-    
+
     do {
         cv.Lock();
-        
-        std::cout << "running stats" << std::endl;
+
         for (it = hosts.begin(); it != hosts.end(); ++it) {
 
             if (it->second->IsDisabled()) continue;
@@ -97,24 +97,24 @@ void XrdLatencyTest::Run() {
             delete url;
         }
 
-        std::cout << "waiting" << std::endl;
-        if (async) while (WaitHosts()) cv.Wait(1);
+        if (async) {
+            while (WaitHosts()) cv.WaitMS(100);
+        }
 
         PrintOut();
 
         cv.UnLock();
 
-        std::cout << "sleeping" << std::endl;
         (flood) ? sleep(floodinterval) : sleep(statinterval);
     } while (loop);
 }
 
 bool XrdLatencyTest::WaitHosts() {
-    std::map<std::string, Host*>::iterator it;
+    std::map<std::string, Host*>::iterator i;
     unsigned int readycount = 0;
 
-    for (it = hosts.begin(); it != hosts.end(); it++) {
-        if (it->second->IsDone()) {
+    for (i = hosts.begin(); i != hosts.end(); ++i) {
+        if (i->second->IsDone()) {
             readycount++;
         }
     }
@@ -214,29 +214,26 @@ void XrdLatencyTest::PrintOut() {
 
         std::cout << std::setprecision(3) << std::fixed;
         std::cout << "hostname: " << host->GetHostname();
-        std::cout << ((flood) ? "\tavg latency: " : "\tlatency: ");
+        std::cout << "\tlatency: ";
         std::cout << curr << "ms ";
         std::cout << std::endl;
 
     }
 
-    std::cout << "this is: " << XrdSysThread::ID() << std::endl;
-    //if (verbose) {
-
-    std::cout << "  good: " << hosts.size() - errors - disabled;
-    std::cout << "  bad: " << errors;
-    std::cout << "  disabled: " << disabled;
-    std::cout << "  pending: " << pending;
-    std::cout << std::setprecision(3) << std::fixed;
-    std::cout << "  avg: " << total / (hosts.size() - errors - disabled) << "ms";
-    std::cout << "  min: " << min << "ms";
-    std::cout << "  max: " << max << "ms" << std::endl;
-
-    std::cout << "  total time for " << hosts.size() - errors - disabled;
-    std::cout << " host(s) with " << ((flood) ? floodcount : 1);
-    std::cout << " stat(s): " << GetTotalTime() << "ms";
-    std::cout << "  rate: " << rate << std::endl;
-    //}
+    if (verbose) {
+        std::cout << "  good: " << hosts.size() - errors - disabled;
+        std::cout << "  bad: " << errors;
+        std::cout << "  disabled: " << disabled;
+        std::cout << "  pending: " << pending;
+        std::cout << std::setprecision(3) << std::fixed;
+        std::cout << "  avg: " << total / (hosts.size() - errors - disabled) << "ms";
+        std::cout << "  min: " << min << "ms";
+        std::cout << "  max: " << max << "ms" << std::endl;
+        std::cout << "  total time for " << hosts.size() - errors - disabled;
+        std::cout << " host(s) with " << ((flood) ? floodcount : 1);
+        std::cout << " stat(s): " << GetTotalTime() << "ms";
+        std::cout << "  rate: " << rate << std::endl;
+    }
 }
 
 void XrdLatencyTest::addHostsFromFile(std::string path) {

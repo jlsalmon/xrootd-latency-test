@@ -19,8 +19,6 @@
 #ifndef STAT_HH
 #define	STAT_HH
 
-#include "Host.hh"
-
 #include "XrdCl/XrdClURL.hh"
 #include "XrdCl/XrdClFileSystem.hh"
 #include "XrdSys/XrdSysPthread.hh"
@@ -31,87 +29,65 @@
 class Stat {
 public:
 
-    Stat() {
-        response = 0;
-        statinfo = 0;
-        status = 0;
-        done = false;
-        bad = false;
-        reqtime.tv_sec = 0;
-        reqtime.tv_usec = 0;
-        resptime.tv_sec = 0;
-        resptime.tv_usec = 0;
-    }
+    /**
+     * Constructor - initialize member variables
+     */
+    Stat();
 
-    virtual ~Stat() {
-    }
-
-    void Initialize() {
-        gettimeofday(&reqtime, NULL);
-    }
+    virtual ~Stat();
+    
+    /**
+     * Record the request time
+     */
+    void Initialize();
 
     /**
+     * Abstract declaration to perform the actual stat.
      * 
-     * @param url
-     * @param statpath
+     * @param url: the URL to stat
+     * @param statpath: path on the remote box to stat
      */
     virtual void Run(XrdCl::URL *url, std::string *statpath) = 0;
 
     /**
-     * 
+     * Record the response time and mark this stat as done.
      */
-    void Finalize() {
-        gettimeofday(&resptime, NULL);
-        done = true;
-    }
+    void Finalize();
     
-    virtual void Reset() {
-        response = 0;
-        statinfo = 0;
-        status = 0;
-        done = false;
-        bad = false;
-        reqtime.tv_sec = 0;
-        reqtime.tv_usec = 0;
-        resptime.tv_sec = 0;
-        resptime.tv_usec = 0;
-    }
+    /**
+     * Re-initialize this stat for re-use
+     */
+    void Reset();
 
-    bool IsDone() {
-        return done;
-    }
+    /**
+     * @return whether the response has been received yet.
+     */
+    bool IsDone();
 
-    bool IsBad() {
-        return bad;
-    }
+    /**
+     * @return whether this stat's response had an error.
+     */
+    bool IsBad();
 
     /**
      * @return the StatInfo object associated with this stat
      */
-    XrdCl::StatInfo* GetStatInfo() {
-        return statinfo;
-    }
+    XrdCl::StatInfo* GetStatInfo();
 
     /**
      * @return the XRootDStatus object associated with this stat
      */
-    XrdCl::XRootDStatus* GetXrootdStatus() {
-        return status;
-    }
+    XrdCl::XRootDStatus* GetXrootdStatus();
 
     /**
      * @return this stat's request time
      */
-    struct timeval GetReqTime() {
-        return reqtime;
-    }
+    struct timeval GetReqTime();
 
     /**
      * @return this stat's response time
      */
-    struct timeval GetRespTime() {
-        return resptime;
-    }
+    struct timeval GetRespTime();
 
 protected:
     bool done;

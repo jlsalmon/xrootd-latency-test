@@ -16,42 +16,30 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#ifndef ASYNCSTAT_HH
-#define	ASYNCSTAT_HH
+#include "SyncStat.hh"
 
-#include "Stat.hh"
+SyncStat::SyncStat(XrdSysCondVar *cv) {
+    this->cv = cv;
+}
 
-class AsyncStat : public Stat, XrdCl::ResponseHandler {
-public:
+SyncStat::~SyncStat() {
+    delete statinfo;
+}
 
-    /**
-     * @param cv: condition variable to monitor responses
-     */
-    AsyncStat(XrdSysCondVar *cv);
-    virtual ~AsyncStat();
+void SyncStat::Run(XrdCl::URL *url, std::string *statpath) {
+    XrdCl::XRootDStatus status;
+    XrdCl::FileSystem fs(*url);
 
-    /**
-     * Perform the actual stat (async).
-     * 
-     * @param url: the URL to stat
-     * @param statpath: path on the remote box to stat
-     */
-    void Run(XrdCl::URL *url, std::string *statpath);
+    Stat::Initialize();
+    status = fs.Stat(*statpath, statinfo, 5);
+    Stat::Finalize();
 
-    /**
-     * Re-initialize this stat for re-use
-     */
-    void Reset();
+    this->status = &status;
+    if (this->status->IsError()) bad = true;
+}
 
-    /**
-     * Asynchronous response handler.
-     * 
-     * @param status: status of the response
-     * @param response: object containing extra info about the response
-     */
-    void HandleResponse(XrdCl::XRootDStatus* status,
-            XrdCl::AnyObject* response);
-};
-
-#endif	/* ASYNCSTAT_HH */
-
+void SyncStat::Reset() {
+    delete statinfo;
+    delete response;
+    Stat::Reset();
+}
