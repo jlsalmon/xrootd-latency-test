@@ -45,8 +45,9 @@ public:
     }
 
     void Reset() {
-        Stat::Reset();
         delete statinfo;
+        delete response;
+        Stat::Reset();
     }
 };
 

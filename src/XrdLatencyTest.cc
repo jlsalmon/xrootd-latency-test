@@ -73,7 +73,6 @@ void XrdLatencyTest::Run() {
         exit(0);
     }
     
-    std::cout << "creating stat objects" << std::endl;
     for (it = hosts.begin(); it != hosts.end(); ++it) {
         for (int i = 0; i < n; i++) {
             (async) ? stat = new AsyncStat(&cv)
@@ -99,7 +98,7 @@ void XrdLatencyTest::Run() {
         }
 
         std::cout << "waiting" << std::endl;
-        if (async) while (WaitHosts()) cv.Wait(5);
+        if (async) while (WaitHosts()) cv.Wait(1);
 
         PrintOut();
 
@@ -194,8 +193,8 @@ void XrdLatencyTest::PrintOut() {
             continue;
         }
 
-        (flood) ? curr = host->GetLatency()
-                : curr = host->GetAverageLatency();
+        (flood) ? curr = host->GetAverageLatency()
+                : curr = host->GetLatency();
         total += curr;
 
         // Find maximum latency

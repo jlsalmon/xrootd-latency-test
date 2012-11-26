@@ -36,18 +36,19 @@ public:
         XrdCl::FileSystem fs(*url);
 
         Stat::Initialize();
-        fs.Stat(*statpath, this, 5);
+        fs.Stat(*statpath, this, 10);
     }
-    
+
     void Reset() {
-        Stat::Reset();
         delete response;
+        delete status;
+        Stat::Reset();
     }
 
     void HandleResponse(XrdCl::XRootDStatus* status,
             XrdCl::AnyObject* response) {
 
-        cv->Lock();
+        //cv->Lock();
         Stat::Finalize();
 
         if (response != NULL) {
@@ -56,10 +57,10 @@ public:
         }
 
         this->status = status;
-        if (this->status->IsError()) bad = true;;
+        if (this->status->IsError()) bad = true;
 
         cv->Signal();
-        cv->UnLock();
+        //cv->UnLock();
     }
 };
 

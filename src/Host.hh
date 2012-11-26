@@ -80,14 +80,14 @@ public:
     }
 
     double GetAverageLatency() {
-        double average = 0;
+        double total = 0;
 
         std::vector<Stat*>::iterator i;
         for (i = stats.begin(); i != stats.end(); ++i) {
-            average += timediff((*i)->GetReqTime(), (*i)->GetRespTime());
+            total += timediff((*i)->GetReqTime(), (*i)->GetRespTime());
         }
 
-        return average;
+        return total / stats.size();
     }
 
     double GetFloodRate() {
