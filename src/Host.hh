@@ -34,7 +34,7 @@ public:
     /**
      * Default constructor
      */
-    Host(std::string hostname, bool async, XrdSysCondVar* cv);
+    Host(std::string hostname, bool async, XrdSysSemaphore* sem);
 
     /**
      * Destructor (unused)
@@ -119,7 +119,7 @@ public:
     bool disabled;
     bool async;
     std::vector<Stat*> stats;
-    XrdSysCondVar *cv;
+    XrdSysSemaphore *sem;
 };
 
 #endif	/* HOST_HH */

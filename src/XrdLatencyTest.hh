@@ -42,7 +42,7 @@ public:
     int floodcount;
     bool verbose;
     pthread_t thread;
-    XrdSysCondVar cv;
+    XrdSysSemaphore sem;
 
     /**
      * Default constructor
@@ -100,6 +100,9 @@ public:
      */
     bool Stop();
 
+    /**
+     * @return 
+     */
     double GetTotalTime();
     
     /**
@@ -107,6 +110,9 @@ public:
      */
     double GetFirstRequest();
 
+    /**
+     * @return 
+     */
     double GetLastResponse();
 
     /**

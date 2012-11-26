@@ -18,8 +18,8 @@
 
 #include "SyncStat.hh"
 
-SyncStat::SyncStat(XrdSysCondVar *cv) {
-    this->cv = cv;
+SyncStat::SyncStat(XrdSysSemaphore *sem) {
+    this->sem = sem;
 }
 
 SyncStat::~SyncStat() {

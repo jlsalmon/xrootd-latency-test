@@ -16,6 +16,8 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <xrootd/XrdSys/XrdSysPthread.hh>
+
 #include "XrdLatencyTest.hh"
 
 XrdLatencyTest::XrdLatencyTest() {
@@ -29,7 +31,6 @@ XrdLatencyTest::XrdLatencyTest() {
     statinterval = 1;
     floodinterval = 2;
     floodcount = 100;
-    cv = XrdSysCondVar(0);
 }
 
 XrdLatencyTest::XrdLatencyTest(std::string statpath,
@@ -75,20 +76,19 @@ void XrdLatencyTest::Run() {
         exit(0);
     }
 
+    sem = XrdSysSemaphore(hosts.size() * n);
+
     // Fill each host with correct number of Stat objects
     for (it = hosts.begin(); it != hosts.end(); ++it) {
         for (int i = 0; i < n; i++) {
-            (async) ? stat = new AsyncStat(&cv)
-                    : stat = new SyncStat(&cv);
+            (async) ? stat = new AsyncStat(&sem)
+                    : stat = new SyncStat(&sem);
             it->second->stats.push_back(stat);
         }
     }
 
     do {
-        cv.Lock();
-
         for (it = hosts.begin(); it != hosts.end(); ++it) {
-
             if (it->second->IsDisabled()) continue;
 
             currenthost = it->first;
@@ -100,12 +100,10 @@ void XrdLatencyTest::Run() {
         }
 
         if (async) {
-            while (WaitHosts()) cv.WaitMS(100);
+            while (WaitHosts()) sem.Wait();
         }
 
         PrintOut();
-
-        cv.UnLock();
 
         (flood) ? sleep(floodinterval) : sleep(statinterval);
     } while (loop);
@@ -261,7 +259,7 @@ void XrdLatencyTest::addHost(std::string host, int port) {
 }
 
 void XrdLatencyTest::addHost(std::string hostname) {
-    hosts.insert(std::make_pair(hostname, new Host(hostname, async, &cv)));
+    hosts.insert(std::make_pair(hostname, new Host(hostname, async, &sem)));
 }
 
 void XrdLatencyTest::removeHost(std::string host, int port) {

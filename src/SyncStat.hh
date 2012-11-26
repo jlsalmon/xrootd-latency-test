@@ -25,9 +25,9 @@ class SyncStat : public Stat {
 public:
 
     /**
-     * @param cv: condition variable to monitor responses
+     * @param sem: semaphore to monitor responses
      */
-    SyncStat(XrdSysCondVar *cv);
+    SyncStat(XrdSysSemaphore *sem);
 
     virtual ~SyncStat();
 

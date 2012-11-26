@@ -18,10 +18,10 @@
 
 #include "Host.hh"
 
-Host::Host(std::string hostname, bool async, XrdSysCondVar* cv) {
+Host::Host(std::string hostname, bool async, XrdSysSemaphore* sem) {
     this->hostname = hostname;
     this->async = async;
-    this->cv = cv;
+    this->sem = sem;
     disabled = false;
 }
 

@@ -16,10 +16,12 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
+#include <xrootd/XrdSys/XrdSysPthread.hh>
+
 #include "AsyncStat.hh"
 
-AsyncStat::AsyncStat(XrdSysCondVar *cv) {
-    this->cv = cv;
+AsyncStat::AsyncStat(XrdSysSemaphore *sem) {
+    this->sem = sem;
 }
 
 AsyncStat::~AsyncStat() {
@@ -30,7 +32,7 @@ void AsyncStat::Run(XrdCl::URL *url, std::string *statpath) {
     XrdCl::FileSystem fs(*url);
 
     Stat::Initialize();
-    fs.Stat(*statpath, this, 10);
+    fs.Stat(*statpath, this, 1);
 }
 
 void AsyncStat::Reset() {
@@ -42,7 +44,6 @@ void AsyncStat::Reset() {
 void AsyncStat::HandleResponse(XrdCl::XRootDStatus* status,
         XrdCl::AnyObject* response) {
 
-    cv->Lock();
     Stat::Finalize();
 
     if (response != NULL) {
@@ -53,6 +54,5 @@ void AsyncStat::HandleResponse(XrdCl::XRootDStatus* status,
     this->status = status;
     if (this->status->IsError()) bad = true;
 
-    cv->Signal();
-    cv->UnLock();
+    sem->Post();
 }

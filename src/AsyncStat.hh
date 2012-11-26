@@ -25,9 +25,9 @@ class AsyncStat : public Stat, XrdCl::ResponseHandler {
 public:
 
     /**
-     * @param cv: condition variable to monitor responses
+     * @param sem: semaphore to monitor responses
      */
-    AsyncStat(XrdSysCondVar *cv);
+    AsyncStat(XrdSysSemaphore *sem);
     virtual ~AsyncStat();
 
     /**

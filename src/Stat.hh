@@ -95,7 +95,7 @@ protected:
     XrdCl::AnyObject *response;
     XrdCl::StatInfo *statinfo;
     XrdCl::XRootDStatus *status;
-    XrdSysCondVar *cv;
+    XrdSysSemaphore *sem;
     struct timeval reqtime;
     struct timeval resptime;
 };
