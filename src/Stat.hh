@@ -47,7 +47,7 @@ public:
      * @param url: the URL to stat
      * @param statpath: path on the remote box to stat
      */
-    virtual void Run(XrdCl::URL *url, std::string *statpath) = 0;
+    virtual void Run(XrdCl::URL *url, std::string statpath) = 0;
 
     /**
      * Record the response time and mark this stat as done.

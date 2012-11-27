@@ -26,9 +26,10 @@ Host::Host(std::string hostname, bool async, XrdSysSemaphore* sem) {
 }
 
 Host::~Host() {
+    while(!stats.empty()) delete stats.back(), stats.pop_back();
 }
 
-void Host::DoStat(XrdCl::URL* url, std::string* statpath, int n) {
+void Host::DoStat(XrdCl::URL* url, std::string statpath, int n) {
     Reset();
 
     for (int i = 0; i < n; i++) {

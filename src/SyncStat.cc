@@ -24,14 +24,15 @@ SyncStat::SyncStat(XrdSysSemaphore *sem) {
 
 SyncStat::~SyncStat() {
     delete statinfo;
+    delete status;
 }
 
-void SyncStat::Run(XrdCl::URL *url, std::string *statpath) {
+void SyncStat::Run(XrdCl::URL *url, std::string statpath) {
     XrdCl::XRootDStatus status;
     XrdCl::FileSystem fs(*url);
 
     Stat::Initialize();
-    status = fs.Stat(*statpath, statinfo, 5);
+    status = fs.Stat(statpath, statinfo, 5);
     Stat::Finalize();
 
     this->status = &status;
@@ -40,6 +41,6 @@ void SyncStat::Run(XrdCl::URL *url, std::string *statpath) {
 
 void SyncStat::Reset() {
     delete statinfo;
-    delete response;
+    delete status;
     Stat::Reset();
 }

@@ -116,45 +116,15 @@ int main(int argc, const char* argv[]) {
             cout << "flood count:          " << xrdlt->floodcount << endl;
         }
 
-        // Start the show
-        //xrdlt->Start();
-        // We're running from the command line, so wait for the thread
-        // to exit (or ctrl-C)
-        //XrdSysThread::Join(xrdlt->thread, NULL);
-        //delete xrdlt;
-
     } else {
         cout << "type \"xrd-latency-test -h\" for help." << endl;
         exit(EXIT_FAILURE);
     }
 
-
-
     xrdlt->Start();
-    if (0) {
-   // if (!fork()) {
-        XrdLatencyTest *xrdlt2 = new XrdLatencyTest();
-        parseargs(*xrdlt2, argc, argv);
-        xrdlt2->setLoop(true);
-        xrdlt2->setAsync(xrdlt->async);
-        xrdlt2->setFlood(true);
-        xrdlt2->Start();
-
-        cout << "host count:           " << xrdlt2->hosts.size() << endl;
-        cout << "stat path:            " << xrdlt2->statpath << endl;
-        cout << "asynchronous:         " << boolalpha << xrdlt2->async << endl;
-        cout << "flood mode:           " << boolalpha << xrdlt2->flood << endl;
-        cout << "loop mode:            " << boolalpha << xrdlt2->loop << endl;
-        cout << "stat interval:        " << xrdlt2->statinterval << endl;
-        cout << "flood interval:       " << xrdlt2->floodinterval << endl;
-        cout << "flood count:          " << xrdlt2->floodcount << endl;
-        XrdSysThread::Join(xrdlt2->thread, NULL);
-        //exit(0);
-    }
-
     XrdSysThread::Join(xrdlt->thread, NULL);
-
-
+    
+    delete xrdlt;
     exit(EXIT_SUCCESS);
 }
 

@@ -16,8 +16,6 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include <xrootd/XrdSys/XrdSysPthread.hh>
-
 #include "AsyncStat.hh"
 
 AsyncStat::AsyncStat(XrdSysSemaphore *sem) {
@@ -26,13 +24,14 @@ AsyncStat::AsyncStat(XrdSysSemaphore *sem) {
 
 AsyncStat::~AsyncStat() {
     delete response;
+    delete status;
 }
 
-void AsyncStat::Run(XrdCl::URL *url, std::string *statpath) {
+void AsyncStat::Run(XrdCl::URL *url, std::string statpath) {
     XrdCl::FileSystem fs(*url);
 
     Stat::Initialize();
-    fs.Stat(*statpath, this, 1);
+    fs.Stat(statpath, this, 5);
 }
 
 void AsyncStat::Reset() {

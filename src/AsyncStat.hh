@@ -36,7 +36,7 @@ public:
      * @param url: the URL to stat
      * @param statpath: path on the remote box to stat
      */
-    void Run(XrdCl::URL *url, std::string *statpath);
+    void Run(XrdCl::URL *url, std::string statpath);
 
     /**
      * Re-initialize this stat for re-use

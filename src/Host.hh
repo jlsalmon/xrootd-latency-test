@@ -37,7 +37,7 @@ public:
     Host(std::string hostname, bool async, XrdSysSemaphore* sem);
 
     /**
-     * Destructor (unused)
+     * Destructor
      */
     virtual ~Host();
 
@@ -48,7 +48,7 @@ public:
      * @param statpath: path on the remote box to stat.
      * @param n: number of stats to send.
      */
-    void DoStat(XrdCl::URL *url, std::string *statpath, int n);
+    void DoStat(XrdCl::URL *url, std::string statpath, int n);
 
     /**
      * Re-initialize this host to the default state
